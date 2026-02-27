@@ -29,14 +29,13 @@ const close = () => {
   tooltipRef.value?.hide()
 }
 onMounted(() => {
-  const instance = createMessage({ message: 'hello world', duration: 0 })
+  createMessage({ message: 'hello world', duration: 3000 })
   createMessage({ message: '1111', duration: 0 })
   createMessage({ message: '22222', duration: 0 })
   if (buttonRef.value) console.log(buttonRef.value.sonref)
   setTimeout(() => {
     opendValue.value = ['b']
     trigger.value = 'hover'
-    instance.destroy()
   }, 3000)
 })
 </script>

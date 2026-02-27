@@ -3,7 +3,9 @@ import type { MessageProps } from './types'
 import RenderVnode from '../Common/RenderVnode.ts'
 import Icon from '../Icon/Icon.vue'
 import { ref, onMounted, watch, computed, nextTick } from 'vue'
+import useEventListener from '@/hooks/useEventListener.ts'
 // import getCurrentInstance from 'vue'
+
 const props = withDefaults(defineProps<MessageProps>(), {
   type: 'info',
   duration: 3000,
@@ -26,18 +28,31 @@ const cssStyle = computed(() => ({
   top: topOffset.value + 'px',
   zIndex: props.zIndex,
 }))
+
+let timer: any
 function startTimer() {
   if (props.duration === 0) return
-  setTimeout(() => {
+  timer = setTimeout(() => {
     visible.value = false
   }, props.duration)
 }
+function clearTimer() {
+  clearTimeout(timer)
+}
+
 onMounted(async () => {
   visible.value = true
   startTimer()
   await nextTick()
   height.value = messageRef.value!.getBoundingClientRect().height
 })
+function keydown(e: Event) {
+  const event = e as KeyboardEvent
+  if (event.code === 'Escape') {
+    visible.value = false
+  }
+}
+useEventListener(document, 'keydown', keydown)
 watch(visible, (newVal) => {
   if (!newVal) {
     props.onDestroy()
@@ -60,6 +75,8 @@ defineExpose({
     }"
     ref="messageRef"
     :style="cssStyle"
+    @mouseenter="clearTimer"
+    @mouseleave="startTimer"
   >
     <div class="vk-message__content">
       <slot>
