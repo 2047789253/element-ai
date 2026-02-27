@@ -2,8 +2,8 @@
 import type { MessageProps } from './types'
 import RenderVnode from '../Common/RenderVnode.ts'
 import Icon from '../Icon/Icon.vue'
-import { getLastBottomOffset } from './method.ts'
-import { ref, onMounted, watch, computed, nextTick, getCurrentInstance } from 'vue'
+import { ref, onMounted, watch, computed, nextTick } from 'vue'
+// import getCurrentInstance from 'vue'
 const props = withDefaults(defineProps<MessageProps>(), {
   type: 'info',
   duration: 3000,
@@ -11,13 +11,13 @@ const props = withDefaults(defineProps<MessageProps>(), {
 })
 const visible = ref(false)
 const messageRef = ref<HTMLDivElement>()
-const instance = getCurrentInstance()
-console.log('inner instance', instance)
+// const instance = getCurrentInstance()
+// console.log('inner instance', instance)
 //计算偏移高度
 //这个div高度
 const height = ref(0)
 //上一个实例的最下面的坐标数字
-const lastOffset = computed(() => getLastBottomOffset())
+const lastOffset = computed(() => props.getLastBottomOffset())
 //这个元素应该使用的top
 const topOffset = computed(() => props.offset + lastOffset.value)
 //为下一个元素预留offset

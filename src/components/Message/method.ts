@@ -13,27 +13,44 @@ export const createMessage = (props: CreateMessageProps) => {
     else instances.splice(index, 1)
     render(null, container)
   }
+  // 在 render 之前捕获前一个实例的引用，闭包传给组件
+  const prevInstance = instances.length > 0 ? instances[instances.length - 1] : null
+  const getLastBottomOffset = () => {
+    if (!prevInstance) return 0
+    return prevInstance.vm.exposed?.bottomOffset.value ?? 0
+  }
+
   const newProps = {
     ...props,
+    id,
     onDestroy: destroy,
+    getLastBottomOffset,
   }
+
   const vnode = h(MessageConstructor, newProps)
   render(vnode, container)
   //非空断言操作符
   document.body.appendChild(container.firstElementChild!)
+  const vm = vnode.component!
   const instance = {
     id,
     vnode,
+    vm,
     props: newProps,
   }
   instances.push(instance)
   return instance
 }
 
-export const getLastInstance = () => {
-  return instances[instances.length - 1]
-}
+// export const getLastInstance = () => {
+//   return instances[instances.length - 1]
+// }
 
-export const getLastBottomOffset = () => {
-  return 0
-}
+// export const getLastBottomOffset = (id: string) => {
+//   const idx = instances.findIndex((instance) => instance.id === id)
+//   if (idx <= 0) return 0
+//   else {
+//     const prev = instances[idx - 1]
+//     return prev?.vm.exposed!.bottomOffset.value ?? 0
+//   }
+// }
