@@ -27,22 +27,17 @@ export default defineConfig({
       name: 'VkElement',
       // 输出的文件名（会和 formats 结合，比如 vk-element.es.js）
       fileName: (format) => `vk-element.${format}.js`,
+      cssFileName: 'index',
       formats: ['es', 'umd'], // 指定打包格式
     },
     rollupOptions: {
       // 核心要求：确保外部化处理那些你不想打包进库的依赖
-      external: ['vue', '@fortawesome/fontawesome-svg-core', '@fortawesome/vue-fontawesome'],
+      external: ['vue'],
       output: {
+        exports: 'named',
         // 在 UMD 构建模式下，为这些外部化的依赖提供一个全局变量
         globals: {
           vue: 'Vue',
-        },
-        // 让打包出的 css 名字统一，而不是叫 style.css
-        assetFileNames: (assetInfo) => {
-          const fileName = assetInfo.names?.[0]
-
-          if (fileName === 'style.css') return 'index.css'
-          return fileName ?? '[name][extname]'
         },
       },
     },

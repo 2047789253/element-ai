@@ -15,7 +15,7 @@ import type { MenuOption } from './components/Dropdown/types'
 const buttonRef = ref<ButtonInstance | null>(null)
 const tooltipRef = ref<TooltipInstance | null>(null)
 const opendValue = ref(['a'])
-const trigger = ref<any>('hover')
+const trigger = ref<'hover' | 'click'>('hover')
 const Options: MenuOption[] = [
   { key: '1', label: h('b', 'this is bold') },
   { key: '2', label: 'Option 2', disabled: true },

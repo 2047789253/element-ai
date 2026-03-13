@@ -5,6 +5,9 @@ import type { Instance } from '@popperjs/core'
 import debounce from 'lodash-es/debounce'
 import type { TooltipProps, TooltipEmits, TooltipInstance } from './types'
 import useClickOutside from '@/hooks/useClickOutside'
+defineOptions({
+  name: 'VkTooltip',
+})
 const props = withDefaults(defineProps<TooltipProps>(), {
   placement: 'bottom',
   trigger: 'hover',

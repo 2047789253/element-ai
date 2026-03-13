@@ -14,6 +14,7 @@
       "import": "./dist/vk-element.es.js",
       "require": "./dist/vk-element.umd.js"
     },
+    "./style.css": "./dist/index.css",
     "./dist/index.css": "./dist/index.css"
   },
   "files": [
