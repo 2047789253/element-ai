@@ -1,3 +1,4 @@
+import './styles/index.scss'
 import type { App } from 'vue'
 import Button from './components/Button/Button.vue'
 import Collapse, { CollapseItem } from './components/Collapse'
