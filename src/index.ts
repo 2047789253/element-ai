@@ -6,6 +6,7 @@ import Tooltip from './components/Tooltip/Tooltip.vue'
 import Dropdown from './components/Dropdown/Dropdown.vue'
 import Message, { createMessage } from './components/Message'
 import Switch from './components/Switch/Switch.vue'
+import Tag from './components/Tag/Tag.vue'
 
 const components = {
   Button,
@@ -15,6 +16,7 @@ const components = {
   Dropdown,
   Message,
   Switch,
+  Tag,
 }
 
 const install = (app: App) => {
@@ -33,6 +35,7 @@ export {
   Message,
   createMessage,
   Switch,
+  Tag,
 }
 
 export default {
