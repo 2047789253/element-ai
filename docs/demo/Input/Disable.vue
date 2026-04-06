@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 import Input from '@/components/Input/Input.vue'
 const test = ref('some text')

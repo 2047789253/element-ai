@@ -62,10 +62,10 @@ describe('Switch Component', () => {
     })
 
     it('should support size variants', () => {
-      const sizes = ['small', 'large']
+      const sizes = ['small', 'large'] as const
       sizes.forEach((size) => {
         const wrapper = mount(Switch, {
-          props: { size: size as any },
+          props: { size },
         })
         expect(wrapper.classes()).toContain(`el-ai-switch--${size}`)
       })

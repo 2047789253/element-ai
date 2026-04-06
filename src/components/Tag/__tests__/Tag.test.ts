@@ -46,10 +46,10 @@ describe('Tag Component', () => {
   // 2. Props 驱动测试
   describe('Props Behavior', () => {
     it('should support all type variants', () => {
-      const types = ['primary', 'success', 'warning', 'danger']
+      const types = ['primary', 'success', 'warning', 'danger'] as const
       types.forEach((type) => {
         const wrapper = mount(Tag, {
-          props: { type: type as any },
+          props: { type },
         })
         expect(wrapper.classes()).toContain(`el-ai-tag--${type}`)
       })

@@ -32,10 +32,10 @@ describe('Conversations Component', () => {
   // 2. Props 驱动测试
   describe('Props Behavior', () => {
     it('should support theme prop', () => {
-      const themes = ['dark', 'light']
+      const themes = ['dark', 'light'] as const
       themes.forEach((theme) => {
         const wrapper = mount(Conversations, {
-          props: { theme: theme as any },
+          props: { theme },
         })
         expect(wrapper.props('theme')).toBe(theme)
       })
@@ -91,12 +91,14 @@ describe('Conversations Component', () => {
       const wrapper = mount(Conversations, {
         props: { hasMore: false },
       })
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const loadMoreBtn = wrapper.find('[class*=load], [class*=next], [class*=more]')
       // Load more should not be visible
     })
 
     it('should handle scroll to load more', async () => {
       const onNext = vi.fn()
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const wrapper = mount(Conversations, {
         props: { onNext, hasMore: true },
       })

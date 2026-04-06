@@ -61,20 +61,20 @@ describe('Icon Component', () => {
     })
 
     it('should support rotation prop', () => {
-      const rotations = [90, 180, 270]
+      const rotations = [90, 180, 270] as const
       rotations.forEach((rotation) => {
         const wrapper = mount(Icon, {
-          props: { icon: 'check', rotation: rotation as any },
+          props: { icon: 'check', rotation },
         })
         expect(wrapper.props('rotation')).toBe(rotation)
       })
     })
 
     it('should support flip prop', () => {
-      const flips = ['horizontal', 'vertical', 'both']
+      const flips = ['horizontal', 'vertical', 'both'] as const
       flips.forEach((flip) => {
         const wrapper = mount(Icon, {
-          props: { icon: 'check', flip: flip as any },
+          props: { icon: 'check', flip },
         })
         expect(wrapper.props('flip')).toBe(flip)
       })
@@ -95,10 +95,10 @@ describe('Icon Component', () => {
     })
 
     it('should support pull prop', () => {
-      const pulls = ['left', 'right']
+      const pulls = ['left', 'right'] as const
       pulls.forEach((pull) => {
         const wrapper = mount(Icon, {
-          props: { icon: 'check', pull: pull as any },
+          props: { icon: 'check', pull },
         })
         expect(wrapper.props('pull')).toBe(pull)
       })

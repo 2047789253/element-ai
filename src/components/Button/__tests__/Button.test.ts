@@ -102,20 +102,20 @@ describe('Button Component', () => {
     })
 
     it('should support multiple type variants', () => {
-      const types = ['primary', 'success', 'warning', 'danger', 'info']
+      const types = ['primary', 'success', 'warning', 'danger', 'info'] as const
       types.forEach((type) => {
         const wrapper = mount(Button, {
-          props: { type: type as any },
+          props: { type },
         })
         expect(wrapper.classes()).toContain(`el-ai-button--${type}`)
       })
     })
 
     it('should support size variants', () => {
-      const sizes = ['small', 'medium', 'large']
+      const sizes = ['small', 'medium', 'large'] as const
       sizes.forEach((size) => {
         const wrapper = mount(Button, {
-          props: { size: size as any },
+          props: { size },
         })
         expect(wrapper.classes()).toContain(`el-ai-button--${size}`)
       })

@@ -12,7 +12,7 @@ export default defineConfigWithVueTs(
   },
 
   // 2. 指定忽略的文件夹 (对应以前的 .eslintignore)
-  globalIgnores(['**/dist/**', '**/dist-ssr/**', '**/coverage/**']),
+  globalIgnores(['**/dist/**', '**/dist-ssr/**', '**/coverage/**', '**/docs/.vitepress/**']),
 
   // 3. Vue 的基础规则 (Essential)
   ...pluginVue.configs['flat/essential'],
@@ -34,7 +34,7 @@ export default defineConfigWithVueTs(
 
       // (可选) 如果你觉得 TS 的 `any` 报错太烦，可以把这行解开
       // '@typescript-eslint/no-explicit-any': 'warn'
-    }
+    },
   },
 
   // 6. 最后加载：关闭格式化规则，交给 Prettier

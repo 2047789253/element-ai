@@ -6,6 +6,7 @@ defineOptions({
   name: 'VkTag',
 })
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const props = withDefaults(defineProps<TagProps>(), {
   type: 'primary',
 })

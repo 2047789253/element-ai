@@ -35,7 +35,9 @@ describe('Sender Component', () => {
       const wrapper = mount(Sender, {
         props: { modelValue: 'Hello' },
       })
-      expect((wrapper.vm as any).modelValue || wrapper.props('modelValue')).toBe('Hello')
+
+      const vm = wrapper.vm as Record<string, unknown>
+      expect(vm.modelValue || wrapper.props('modelValue')).toBe('Hello')
     })
 
     it('should update modelValue when input changes', async () => {

@@ -64,10 +64,10 @@ describe('Message Component', () => {
     })
 
     it('should support all type variants', () => {
-      const types = ['success', 'warning', 'info', 'danger']
+      const types = ['success', 'warning', 'info', 'danger'] as const
       types.forEach((type) => {
         const wrapper = mount(Message, {
-          props: { ...defaultProps, type: type as any },
+          props: { ...defaultProps, type },
         })
         expect(wrapper.element.className || wrapper.html().includes(type)).toBeTruthy()
       })

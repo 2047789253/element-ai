@@ -47,10 +47,10 @@ describe('Bubble Component', () => {
     })
 
     it('should support placement prop variation', () => {
-      const placements = ['start', 'end']
+      const placements = ['start', 'end'] as const
       placements.forEach((placement) => {
         const wrapper = mount(Bubble, {
-          props: { placement: placement as any },
+          props: { placement },
         })
         expect(wrapper.classes()).toContain(`el-ai-bubble-${placement}`)
       })

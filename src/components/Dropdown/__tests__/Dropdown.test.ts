@@ -80,12 +80,12 @@ describe('Dropdown Component', () => {
     })
 
     it('should support trigger variants (from Tooltip)', () => {
-      const triggers = ['hover', 'click']
+      const triggers = ['hover', 'click'] as const
       triggers.forEach((trigger) => {
         const wrapper = mount(Dropdown, {
           props: {
             menuOptions: defaultMenuOptions,
-            trigger: trigger as any,
+            trigger,
           },
           slots: {
             default: '<button>Dropdown</button>',
@@ -149,11 +149,13 @@ describe('Dropdown Component', () => {
         },
       })
       // Note: The actual selection logic depends on implementation
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const emitted = wrapper.emitted('select')
       // Emitted might be undefined until item is clicked
     })
 
     it('should not select disabled options', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const wrapper = mount(Dropdown, {
         props: {
           menuOptions: [{ label: 'Disabled Option', key: 'disabled', disabled: true }],
@@ -199,8 +201,9 @@ describe('Dropdown Component', () => {
           default: '<button>Dropdown</button>',
         },
       })
-      const instance = wrapper.vm as any
-      expect(typeof instance.show).toBe('function')
+
+      const instance = wrapper.vm
+      expect(typeof (instance as Record<string, unknown>).show).toBe('function')
     })
 
     it('should expose hide method', () => {
@@ -210,8 +213,9 @@ describe('Dropdown Component', () => {
           default: '<button>Dropdown</button>',
         },
       })
-      const instance = wrapper.vm as any
-      expect(typeof instance.hide).toBe('function')
+
+      const instance = wrapper.vm
+      expect(typeof (instance as Record<string, unknown>).hide).toBe('function')
     })
   })
 })

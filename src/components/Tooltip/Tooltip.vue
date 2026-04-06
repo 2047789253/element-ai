@@ -9,6 +9,7 @@ import useClickOutside from '@/hooks/useClickOutside'
 defineOptions({
   name: 'VkTooltip',
 })
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const ns = useNamespace('tooltip')
 const props = withDefaults(defineProps<TooltipProps>(), {
   placement: 'bottom',

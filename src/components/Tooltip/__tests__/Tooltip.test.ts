@@ -33,10 +33,10 @@ describe('Tooltip Component', () => {
     })
 
     it('should support trigger variants', () => {
-      const triggers = ['hover', 'click']
+      const triggers = ['hover', 'click'] as const
       triggers.forEach((trigger) => {
         const wrapper = mount(Tooltip, {
-          props: { trigger: trigger as any },
+          props: { trigger },
           slots: {
             default: '<button>Trigger</button>',
           },
@@ -59,10 +59,10 @@ describe('Tooltip Component', () => {
         'left',
         'left-start',
         'left-end',
-      ]
+      ] as const
       placements.forEach((placement) => {
         const wrapper = mount(Tooltip, {
-          props: { placement: placement as any },
+          props: { placement },
           slots: {
             default: '<button>Trigger</button>',
           },
@@ -181,7 +181,8 @@ describe('Tooltip Component', () => {
           default: '<button>Trigger</button>',
         },
       })
-      const instance = wrapper.vm as any
+
+      const instance = wrapper.vm as Record<string, unknown>
       expect(typeof instance.show).toBe('function')
     })
 
@@ -192,7 +193,8 @@ describe('Tooltip Component', () => {
           default: '<button>Trigger</button>',
         },
       })
-      const instance = wrapper.vm as any
+
+      const instance = wrapper.vm as Record<string, unknown>
       expect(typeof instance.hide).toBe('function')
     })
   })
