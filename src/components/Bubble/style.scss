@@ -99,11 +99,11 @@
   &.el-ai-bubble-end {
     justify-content: flex-end;
 
-    #{ns.e('avatar')} {
+    @include e('avatar') {
       order: 2;
     }
 
-    #{ns.e('content-wrapper')} {
+    @include e('content-wrapper') {
       order: 1;
       text-align: right;
     }

@@ -19,86 +19,9 @@
     opacity: 0;
     margin: 0;
 
-    @include focus-visible {
-      & ~ #{ns.e('core')} {
-        outline: 2px solid var(--el-ai-switch-on-color);
-        outline-offset: 1px;
-      }
-    }
-  }
-
-  @include when('disabled') {
-    opacity: 0.6;
-
-    @include e('core') {
-      cursor: not-allowed;
-    }
-  }
-
-  @include when('checked') {
-    @include e('core') {
-      border-color: var(--el-ai-switch-on-border-color);
-      background-color: var(--el-ai-switch-on-color);
-
-      #{ns.e('core-action')} {
-        left: calc(100% - 17px);
-      }
-
-      #{ns.e('core-inner')} {
-        padding: 0 18px 0 4px;
-      }
-    }
-  }
-
-  @include m('large') {
-    font-size: 14px;
-    line-height: 24px;
-    height: 40px;
-
-    @include e('core') {
-      min-width: 50px;
-      height: 24px;
-      border-radius: 12px;
-
-      #{ns.e('core-action')} {
-        width: 20px;
-        height: 20px;
-      }
-    }
-
-    @include when('checked') {
-      @include e('core') {
-        #{ns.e('core-action')} {
-          left: calc(100% - 21px);
-          color: var(--el-ai-switch-on-color);
-        }
-      }
-    }
-  }
-
-  @include m('small') {
-    font-size: 12px;
-    line-height: 16px;
-    height: 24px;
-
-    @include e('core') {
-      min-width: 30px;
-      height: 16px;
-      border-radius: 8px;
-
-      #{ns.e('core-action')} {
-        width: 12px;
-        height: 12px;
-      }
-    }
-
-    @include when('checked') {
-      @include e('core') {
-        #{ns.e('core-action')} {
-          left: calc(100% - 13px);
-          color: var(--el-ai-switch-on-color);
-        }
-      }
+    &:focus-visible ~ .el-ai-switch__core {
+      outline: 2px solid var(--el-ai-switch-on-color);
+      outline-offset: 1px;
     }
   }
 
@@ -115,34 +38,105 @@
     background: var(--el-ai-switch-off-color);
     cursor: pointer;
     @include transition(border-color, background-color);
+  }
 
-    #{ns.e('core-action')} {
-      position: absolute;
-      left: 1px;
-      border-radius: var(--el-ai-border-radius-circle);
-      width: 16px;
-      height: 16px;
-      background-color: #ffffff;
-      @include transition(all);
+  .el-ai-switch__core-action {
+    position: absolute;
+    left: 1px;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    background-color: #ffffff;
+    @include transition(all);
+  }
+
+  .el-ai-switch__core-inner {
+    width: 100%;
+    @include transition(all);
+    height: 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    padding: 0 4px 0 18px;
+  }
+
+  .el-ai-switch__core-inner-text {
+    font-size: 12px;
+    color: #ffffff;
+    user-select: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  @include when('disabled') {
+    opacity: 0.6;
+
+    @include e('core') {
+      cursor: not-allowed;
+    }
+  }
+
+  @include when('checked') {
+    @include e('core') {
+      border-color: var(--el-ai-switch-on-border-color);
+      background-color: var(--el-ai-switch-on-color);
     }
 
-    #{ns.e('core-inner')} {
-      width: 100%;
-      @include transition(all);
-      height: 16px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      overflow: hidden;
-      padding: 0 4px 0 18px;
+    .el-ai-switch__core-action {
+      left: calc(100% - 17px);
+    }
 
-      #{ns.e('core-inner-text')} {
-        font-size: 12px;
-        color: #ffffff;
-        user-select: none;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+    .el-ai-switch__core-inner {
+      padding: 0 18px 0 4px;
+    }
+  }
+
+  @include m('large') {
+    font-size: 14px;
+    line-height: 24px;
+    height: 40px;
+
+    @include e('core') {
+      min-width: 50px;
+      height: 24px;
+      border-radius: 12px;
+    }
+
+    .el-ai-switch__core-action {
+      width: 20px;
+      height: 20px;
+    }
+
+    @include when('checked') {
+      .el-ai-switch__core-action {
+        left: calc(100% - 21px);
+        color: var(--el-ai-switch-on-color);
+      }
+    }
+  }
+
+  @include m('small') {
+    font-size: 12px;
+    line-height: 16px;
+    height: 24px;
+
+    @include e('core') {
+      min-width: 30px;
+      height: 16px;
+      border-radius: 8px;
+    }
+
+    .el-ai-switch__core-action {
+      width: 12px;
+      height: 12px;
+    }
+
+    @include when('checked') {
+      .el-ai-switch__core-action {
+        left: calc(100% - 13px);
+        color: var(--el-ai-switch-on-color);
       }
     }
   }

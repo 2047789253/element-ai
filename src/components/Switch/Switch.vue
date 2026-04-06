@@ -44,12 +44,12 @@ const switchValue = () => {
       :checked="checked"
     />
     <div :class="ns.e('core')">
-      <div :class="ns.bem('core', 'inner')">
-        <span v-if="activeText || inactiveText" :class="ns.bem('core', 'inner', 'text')">
+      <div :class="ns.e('core-inner')">
+        <span v-if="activeText || inactiveText" :class="ns.e('core-inner-text')">
           {{ checked ? props.activeText : props.inactiveText }}
         </span>
       </div>
-      <div :class="ns.bem('core', 'action')"></div>
+      <div :class="ns.e('core-action')"></div>
     </div>
   </div>
 </template>
