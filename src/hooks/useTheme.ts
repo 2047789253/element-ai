@@ -1,4 +1,5 @@
-import { ComputedRef, inject, InjectionKey, ref, Ref } from 'vue'
+import type { ComputedRef, InjectionKey, Ref } from 'vue'
+import { inject, ref } from 'vue'
 
 export const themeContextKey: InjectionKey<
   Ref<'light' | 'dark' | undefined> | ComputedRef<'light' | 'dark'>

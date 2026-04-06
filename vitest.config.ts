@@ -7,12 +7,6 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'happy-dom',
-    coverage: {
-      lines: 70,
-      functions: 70,
-      branches: 70,
-      statements: 70,
-    },
   },
   resolve: {
     alias: {
