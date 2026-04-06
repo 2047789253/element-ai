@@ -85,7 +85,7 @@ describe('Bubble Component', () => {
     })
 
     it('should support theme variants', () => {
-      const themes = ['light', 'dark']
+      const themes = ['light', 'dark'] as const
       themes.forEach((theme) => {
         const wrapper = mount(Bubble, {
           props: { theme },
