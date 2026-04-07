@@ -1,11 +1,11 @@
 @use '@/styles/mixins.scss' as *;
 
 @include b('tooltip') {
-  --vk-popover-bg-color: var(--el-ai-tooltip-bg-color);
-  --vk-popover-font-size: var(--el-ai-font-size-base);
-  --vk-popover-border-color: var(--el-ai-tooltip-border-color);
-  --vk-popover-padding: 12px;
-  --vk-popover-border-radius: 4px;
+  --el-ai-popover-bg-color: var(--el-ai-tooltip-bg-color);
+  --el-ai-popover-font-size: var(--el-ai-font-size-base);
+  --el-ai-popover-border-color: var(--el-ai-tooltip-border-color);
+  --el-ai-popover-padding: 12px;
+  --el-ai-popover-border-radius: 4px;
   display: inline-block;
   position: relative;
 
@@ -14,7 +14,7 @@
     background: var(--el-ai-tooltip-bg-color);
     border-radius: var(--el-ai-border-radius-small);
     border: 1px solid var(--el-ai-tooltip-border-color);
-    padding: var(--vk-popover-padding);
+    padding: var(--el-ai-popover-padding);
     color: var(--el-ai-tooltip-text-color);
     line-height: 1.4;
     text-align: justify;
@@ -23,62 +23,62 @@
     word-break: break-all;
     box-sizing: border-box;
     z-index: 1000;
-    #arrow,
-    #arrow::before {
+    .#{$namespace}-tooltip__arrow,
+    .#{$namespace}-tooltip__arrow::before {
       position: absolute;
       width: 8px;
       height: 8px;
       box-sizing: border-box;
-      background: var(--vk-popover-bg-color);
+      background: var(--el-ai-popover-bg-color);
     }
-    #arrow {
+    .#{$namespace}-tooltip__arrow {
       visibility: hidden;
     }
-    #arrow::before {
+    .#{$namespace}-tooltip__arrow::before {
       visibility: visible;
       content: '';
       transform: rotate(45deg);
     }
-    &[data-popper-placement^='top'] > #arrow {
+    &[data-popper-placement^='top'] > .#{$namespace}-tooltip__arrow {
       bottom: -5px;
     }
 
-    &[data-popper-placement^='bottom'] > #arrow {
+    &[data-popper-placement^='bottom'] > .#{$namespace}-tooltip__arrow {
       top: -5px;
     }
 
-    &[data-popper-placement^='left'] > #arrow {
+    &[data-popper-placement^='left'] > .#{$namespace}-tooltip__arrow {
       right: -5px;
     }
 
-    &[data-popper-placement^='right'] > #arrow {
+    &[data-popper-placement^='right'] > .#{$namespace}-tooltip__arrow {
       left: -5px;
     }
-    &[data-popper-placement^='top'] > #arrow::before {
+    &[data-popper-placement^='top'] > .#{$namespace}-tooltip__arrow::before {
       border-right: 1px solid var(--el-ai-tooltip-border-color);
       border-bottom: 1px solid var(--el-ai-tooltip-border-color);
     }
-    &[data-popper-placement^='bottom'] > #arrow::before {
+    &[data-popper-placement^='bottom'] > .#{$namespace}-tooltip__arrow::before {
       border-left: 1px solid var(--el-ai-tooltip-border-color);
       border-top: 1px solid var(--el-ai-tooltip-border-color);
     }
-    &[data-popper-placement^='left'] > #arrow::before {
+    &[data-popper-placement^='left'] > .#{$namespace}-tooltip__arrow::before {
       border-right: 1px solid var(--el-ai-tooltip-border-color);
       border-top: 1px solid var(--el-ai-tooltip-border-color);
     }
-    &[data-popper-placement^='right'] > #arrow::before {
+    &[data-popper-placement^='right'] > .#{$namespace}-tooltip__arrow::before {
       border-left: 1px solid var(--el-ai-tooltip-border-color);
       border-bottom: 1px solid var(--el-ai-tooltip-border-color);
     }
   }
 
-  .fade-enter-active,
-  .fade-leave-active {
+  .#{$namespace}-tooltip-fade-enter-active,
+  .#{$namespace}-tooltip-fade-leave-active {
     transition: opacity var(--el-ai-transition-duration);
   }
 
-  .fade-enter-from,
-  .fade-leave-to {
+  .#{$namespace}-tooltip-fade-enter-from,
+  .#{$namespace}-tooltip-fade-leave-to {
     opacity: 0;
   }
 }

@@ -1,5 +1,5 @@
 <template>
-  <div :class="[ns.b(), ns.b(placement), ns.b(footerTrigger + '-footer')]">
+  <div :class="[ns.b(), ns.m(placement), ns.m(footerTrigger + '-footer')]">
     <div v-if="hasAvatar" :class="ns.e('avatar')">
       <slot name="avatar"></slot>
     </div>

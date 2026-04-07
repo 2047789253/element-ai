@@ -15,7 +15,7 @@ describe('Tooltip Component', () => {
           default: '<button>Hover me</button>',
         },
       })
-      expect(wrapper.element.className || wrapper.find('.vk-tooltip').exists()).toBeTruthy()
+      expect(wrapper.element.className || wrapper.find('.el-ai-tooltip').exists()).toBeTruthy()
     })
   })
 

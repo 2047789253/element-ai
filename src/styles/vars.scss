@@ -1,12 +1,90 @@
 @use 'sass:color';
+@use 'sass:map';
 
-/* SCSS Variables for build-time use */
 $colors: (
-  primary: #0057ff,
-  success: #52c41a,
-  warning: #faad14,
-  danger: #ff4d4f,
-  info: #1890ff,
+  primary: #409eff,
+  success: #67c23a,
+  warning: #e6a23c,
+  danger: #f56c6c,
+  info: #909399,
 );
 
-$light-levels: 3, 5, 7, 9;
+$light-levels: 3, 5, 7, 8, 9;
+
+:root {
+  --el-ai-color-white: #ffffff;
+  --el-ai-color-black: #000000;
+  --el-ai-transition-duration: 0.3s;
+
+  @each $type, $color in $colors {
+    --el-ai-color-#{$type}: #{$color};
+    @each $i in $light-levels {
+      --el-ai-color-#{$type}-light-#{$i}: #{color.mix(#ffffff, $color, $i * 10%)};
+    }
+  }
+
+  --el-ai-text-color: #303133;
+  --el-ai-text-color-regular: #606266;
+  --el-ai-text-color-secondary: #909399;
+  --el-ai-text-color-light: #c0c4cc;
+  --el-ai-text-color-placeholder: #a8abb2;
+  --el-ai-font-size-base: 14px;
+  --el-ai-font-size-small: 12px;
+  --el-ai-font-weight-primary: 500;
+  --el-ai-border-color: #dcdfe6;
+  --el-ai-border-color-light: #e4e7ed;
+  --el-ai-fill-color: #f0f2f5;
+  --el-ai-bg-color: #ffffff;
+  --el-ai-border-width: 1px;
+  --el-ai-border-style: solid;
+  --el-ai-border-radius-base: 4px;
+  --el-ai-border-radius-small: 2px;
+  --el-ai-border-radius-round: 20px;
+  --el-ai-border-radius-circle: 50%;
+  --el-ai-box-shadow-light: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+
+  --el-ai-button-bg-color: #ffffff;
+  --el-ai-button-border-color: #dcdfe6;
+  --el-ai-button-text-color: #606266;
+  --el-ai-button-hover-bg-color: var(--el-ai-color-primary-light-9);
+  --el-ai-button-hover-border-color: var(--el-ai-color-primary-light-5);
+  --el-ai-button-hover-text-color: var(--el-ai-color-primary);
+  --el-ai-button-active-bg-color: var(--el-ai-color-primary-light-8);
+  --el-ai-button-active-border-color: var(--el-ai-color-primary);
+  --el-ai-button-active-text-color: var(--el-ai-color-primary);
+  --el-ai-button-disabled-bg-color: #ffffff;
+  --el-ai-button-disabled-border-color: #e4e7ed;
+  --el-ai-button-disabled-text-color: #a8abb2;
+
+  --el-ai-switch-on-color: var(--el-ai-color-primary);
+  --el-ai-switch-on-border-color: var(--el-ai-color-primary);
+  --el-ai-switch-off-color: #dcdfe6;
+  --el-ai-switch-off-border-color: #dcdfe6;
+
+  --el-ai-tooltip-bg-color: #303133;
+  --el-ai-tooltip-border-color: #303133;
+  --el-ai-tooltip-text-color: #ffffff;
+  --el-ai-dropdown-menu-bg: #ffffff;
+
+  --el-ai-message-bg-color: #f0f9eb;
+  --el-ai-message-border-color: #e1f3d8;
+  --el-ai-message-text-color: #67c23a;
+  --el-ai-message-success-bg: #f0f9eb;
+  --el-ai-message-success-border: #e1f3d8;
+  --el-ai-message-warning-bg: #fdf6ec;
+  --el-ai-message-warning-border: #faecd8;
+  --el-ai-message-danger-bg: #fef0f0;
+  --el-ai-message-danger-border: #fde2e2;
+
+  --el-ai-bubble-content-bg: #f0f2f5;
+  --el-ai-text-secondary: #909399;
+  --el-ai-loading-dot-color: var(--el-ai-color-primary);
+
+  --el-ai-primary-color: var(--el-ai-color-primary);
+  --el-ai-sender-bg: #ffffff;
+  --el-ai-sender-border: #dcdfe6;
+  --el-ai-sender-placeholder: #a8abb2;
+  --el-ai-sender-text: #303133;
+  --el-ai-conversations-bg: #ffffff;
+  --el-ai-scrollbar-thumb-bg: #dcdfe6;
+}

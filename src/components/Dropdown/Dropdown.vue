@@ -5,6 +5,9 @@ import type { DropdownProps, DropdownEmits, DropdownInstance, MenuOption } from 
 import Tooltip from '@/components/Tooltip/Tooltip.vue'
 import RenderVnode from '@/components/Common/RenderVnode'
 import type { TooltipInstance } from '@/components/Tooltip/types'
+import { useNamespace } from '@/hooks/useNamespace'
+
+const ns = useNamespace('dropdown')
 const props = withDefaults(defineProps<DropdownProps>(), { hideAfterClick: true })
 const emit = defineEmits<DropdownEmits>()
 const tooltipRef = ref() as Ref<TooltipInstance>
@@ -36,7 +39,7 @@ defineExpose<DropdownInstance>({
 </script>
 
 <template>
-  <div class="vk-dropdown">
+  <div :class="ns.b()">
     <Tooltip
       :trigger="props.trigger"
       :placement="props.placement"
@@ -48,15 +51,15 @@ defineExpose<DropdownInstance>({
     >
       <slot />
       <template #content>
-        <ul class="vk-dropdown_menu">
+        <ul :class="ns.e('menu')">
           <template v-for="item in props.menuOptions" :key="item.key">
-            <li v-if="item.divided" role="separator" class="divided-placeholder"></li>
+            <li v-if="item.divided" role="separator" :class="ns.e('divided-placeholder')"></li>
             <li
-              class="vk-dropdown__item"
-              :class="{
-                'is-divided': item.divided,
-                'is-disabled': item.disabled,
-              }"
+              :class="[
+                ns.e('item'),
+                ns.is('divided', item.divided),
+                ns.is('disabled', item.disabled),
+              ]"
               :id="`dropdown-item-${item.key}`"
               @click="itemClick(item)"
             >
@@ -68,15 +71,3 @@ defineExpose<DropdownInstance>({
     </Tooltip>
   </div>
 </template>
-
-<style scoped>
-.vk-dropdown_menu {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.vk-dropdown__item {
-  white-space: nowrap;
-}
-</style>

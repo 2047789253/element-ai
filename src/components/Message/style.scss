@@ -1,12 +1,12 @@
 @use '@/styles/mixins.scss' as *;
 
 @include b('message') {
-  --vk-message-bg-color: var(--el-ai-message-bg-color);
-  --vk-message-border-color: var(--el-ai-message-border-color);
-  --vk-message-padding: 15px 19px;
-  --vk-message-close-size: 16px;
-  --vk-message-close-icon-color: var(--el-ai-text-color-light);
-  --vk-message-close-hover-color: var(--el-ai-text-color-secondary);
+  --el-ai-message-bg-color: var(--el-ai-message-bg-color);
+  --el-ai-message-border-color: var(--el-ai-message-border-color);
+  --el-ai-message-padding: 15px 19px;
+  --el-ai-message-close-size: 16px;
+  --el-ai-message-close-icon-color: var(--el-ai-text-color-light);
+  --el-ai-message-close-hover-color: var(--el-ai-text-color-secondary);
 
   width: fit-content;
   max-width: calc(100% - 32px);
@@ -14,13 +14,13 @@
   border-radius: var(--el-ai-border-radius-base);
   border-width: var(--el-ai-border-width);
   border-style: var(--el-ai-border-style);
-  border-color: var(--vk-message-border-color);
+  border-color: var(--el-ai-message-border-color);
   position: fixed;
   left: 50%;
   top: 20px;
   transform: translateX(-50%);
   background-color: var(--el-ai-message-bg-color);
-  padding: var(--vk-message-padding);
+  padding: var(--el-ai-message-padding);
   display: flex;
   align-items: center;
   @include transition(top, opacity, transform);
@@ -47,18 +47,19 @@
 
   @each $val in info, success, warning, danger {
     @include m($val) {
-      --vk-message-bg-color: var(--el-ai-message-#{$val}-bg);
-      --vk-message-border-color: var(--el-ai-message-#{$val}-border);
-      --vk-message-text-color: var(--el-ai-color-#{$val});
+      --el-ai-message-bg-color: var(--el-ai-message-#{$val}-bg);
+      --el-ai-message-border-color: var(--el-ai-message-#{$val}-border);
+      --el-ai-message-text-color: var(--el-ai-color-#{$val});
 
       @include e('close') {
-        --vk-icon-color: var(--el-ai-color-#{$val});
+        --el-ai-icon-color: var(--el-ai-color-#{$val});
       }
     }
   }
 }
-.vk-message.fade-up-enter-from,
-.vk-message.fade-up-leave-to {
+
+.#{$namespace}-message.fade-up-enter-from,
+.#{$namespace}-message.fade-up-leave-to {
   opacity: 0;
   transform: translate(-50%, -100%);
 }

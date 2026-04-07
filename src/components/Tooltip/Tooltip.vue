@@ -9,7 +9,7 @@ import useClickOutside from '@/hooks/useClickOutside'
 defineOptions({
   name: 'VkTooltip',
 })
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 const ns = useNamespace('tooltip')
 const props = withDefaults(defineProps<TooltipProps>(), {
   placement: 'bottom',
@@ -140,16 +140,16 @@ defineExpose<TooltipInstance>({
 </script>
 
 <template>
-  <div class="vk-tooltip" ref="popperContainerNode" v-on="outerEvents">
-    <div class="vk-tooltip__trigger" ref="triggerNode" v-on="events">
+  <div :class="ns.b()" ref="popperContainerNode" v-on="outerEvents">
+    <div :class="ns.e('trigger')" ref="triggerNode" v-on="events">
       <slot></slot>
     </div>
-    <transition :name="transition">
-      <div v-if="isOpen" class="vk-tooltip__popper" ref="popperNode">
+    <transition :name="ns.b(transition)">
+      <div v-if="isOpen" :class="ns.e('popper')" ref="popperNode">
         <slot name="content">
           {{ props.content }}
         </slot>
-        <div id="arrow" data-popper-arrow></div>
+        <div :class="ns.e('arrow')" data-popper-arrow></div>
       </div>
     </transition>
   </div>

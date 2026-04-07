@@ -92,11 +92,11 @@
   }
 
   /* Placement variations */
-  &.el-ai-bubble-start {
+  @include m('start') {
     justify-content: flex-start;
   }
 
-  &.el-ai-bubble-end {
+  @include m('end') {
     justify-content: flex-end;
 
     @include e('avatar') {

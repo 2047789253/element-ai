@@ -61,7 +61,7 @@ describe('Bubble Component', () => {
         props: { loading: true },
       })
       expect(
-        wrapper.find('.vk-bubble__loading, .vk-bubble__dots, [class*=loading]').exists(),
+        wrapper.find('.el-ai-bubble__loading, .el-ai-bubble__dots, [class*=loading]').exists(),
       ).toBeTruthy()
     })
 

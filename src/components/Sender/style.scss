@@ -9,7 +9,7 @@
   background-color: var(--el-ai-sender-bg, #ffffff);
   box-sizing: border-box;
 
-  &.el-ai-sender-dark {
+  @include m('dark') {
     background-color: var(--el-ai-sender-bg);
     border-color: var(--el-ai-sender-border);
   }

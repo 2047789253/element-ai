@@ -193,7 +193,7 @@
   // ==================== 图标相邻元素 ====================
 
   [class*='el-ai-icon'],
-  [class*='vk-icon'] {
+  [class*='el-ai-icon'] {
     & + span {
       margin-left: 6px;
     }
