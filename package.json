@@ -1,21 +1,17 @@
 {
-  "name": "imitation-element-plus",
+  "name": "element-ai",
   "version": "0.0.1",
   "type": "module",
-  "engines": {
-    "node": "^20.19.0 || >=22.12.0"
-  },
-  "main": "dist/vk-element.umd.js",
-  "module": "dist/vk-element.es.js",
+  "main": "dist/element-ai.umd.js",
+  "module": "dist/element-ai.es.js",
   "types": "dist/types/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/types/index.d.ts",
-      "import": "./dist/vk-element.es.js",
-      "require": "./dist/vk-element.umd.js"
+      "import": "./dist/element-ai.es.js",
+      "require": "./dist/element-ai.umd.js"
     },
-    "./style.css": "./dist/index.css",
-    "./dist/index.css": "./dist/index.css"
+    "./style.css": "./dist/index.css"
   },
   "files": [
     "dist",

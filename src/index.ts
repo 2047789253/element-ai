@@ -6,6 +6,9 @@ import Dropdown from './components/Dropdown/Dropdown.vue'
 import Message, { createMessage } from './components/Message'
 import Switch from './components/Switch/Switch.vue'
 import Tag from './components/Tag/Tag.vue'
+import Bubble from './components/Bubble/index.vue'
+import Sender from './components/Sender/index.vue'
+import Conversations from './components/Conversations/index.vue'
 
 const components = {
   Button,
@@ -14,16 +17,31 @@ const components = {
   Message,
   Switch,
   Tag,
+  Bubble,
+  Sender,
+  Conversations,
 }
 
 const install = (app: App) => {
   Object.values(components).forEach((comp) => {
     const component = comp as { name?: string; install?: (app: App) => void }
-    app.component(component.name || 'Component', comp)
+    app.component(component.name ?? 'FallbackName', comp)
   })
 }
 
-export { install, Button, Tooltip, Dropdown, Message, createMessage, Switch, Tag }
+export {
+  install,
+  Button,
+  Tooltip,
+  Dropdown,
+  Message,
+  createMessage,
+  Switch,
+  Tag,
+  Bubble,
+  Sender,
+  Conversations,
+}
 
 export default {
   install,
