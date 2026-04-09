@@ -43,7 +43,7 @@ import { computed, watch, useSlots } from 'vue'
 import MarkdownIt from 'markdown-it'
 // 引入代码高亮库及其深色主题
 import hljs from 'highlight.js'
-import 'highlight.js/styles/github-dark.css'
+import 'highlight.js/styles/atom-one-dark.css'
 
 defineOptions({ name: 'Bubble' })
 

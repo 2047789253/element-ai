@@ -6,15 +6,19 @@
   $block: &;
 
   display: flex;
+  align-items: flex-start; /* 🌟 核心修复：阻止气泡容器被纵向拉伸 */
   gap: 12px;
   width: 100%;
-  align-items: flex-start;
 
-  // ==================== 基础元素定义 ====================
+  // ==================== 头像 ====================
   @include e('avatar') {
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
+  // ==================== 内容包装器 ====================
   @include e('content-wrapper') {
     flex: 1;
     width: 0;
@@ -23,124 +27,117 @@
   // ==================== 内容区域 ====================
   @include e('content') {
     display: flex;
-    align-items: flex-start;
+    align-items: flex-start; /* 🌟 核心修复：阻止内部文本色块被拉伸 */
     width: 100%;
 
     // 基础文本样式
     @include m('text') {
-      font-size: 15px; /* 字体稍微调大，提升长文本阅读体验 */
-      line-height: 1.6; /* 增加行高，减少压迫感 */
+      font-size: 15px;
+      line-height: 1.6;
       color: var(--ela-text-color, #1f1f1f);
       word-break: break-word;
-      white-space: pre-wrap;
-      text-align: left;
+      text-align: left; /* 保证内部多行文本始终靠左阅读 */
     }
 
-    // 🌟 用户提问气泡 (类似 Gemini / ChatGPT 现代风格)
+    // 用户提问气泡 (现代不对称大圆角风格)
     @include m('filled') {
-      background-color: var(--ela-bubble-user-bg, #f0f4f9); /* 经典的极浅灰蓝色 */
+      background-color: var(--ela-bubble-user-bg, #f0f4f9);
       padding: 12px 20px;
-      /* 核心视觉：非常圆润的角，唯独右下角直角，形成“气泡尾巴”的视觉引导 */
-      border-radius: 24px 24px 4px 24px;
+      border-radius: 24px 24px 4px 24px; /* 气泡尾巴在右下角 */
       border: none;
     }
 
-    // 🌟 AI 回答气泡 (沉浸式无边框阅读)
+    // AI 回答气泡 (沉浸式无边框阅读风格)
     @include m('borderless') {
       background-color: transparent;
-      padding: 6px 0 12px 0; /* 移除左右 padding，让文本和头像完美垂直对齐 */
+      padding: 6px 0 12px 0; /* 移除左右 padding，让文本和头像自然对齐 */
       border: none;
       border-radius: 0;
     }
 
-    // 其他保留 (可能用到的备用样式)
+    // 备用样式 (传统带边框白底气泡)
     @include m('outlined') {
       background-color: #ffffff;
       border: 1px solid var(--ela-border-color, #e4e7ed);
       border-radius: 8px;
       padding: 12px 16px;
     }
-  }
-  @include m('shadow') {
-    background-color: transparent;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  }
-  @include m('borderless') {
-    background-color: transparent;
-    padding: 0;
-  }
-  @include m('round') {
-    border-radius: 50px;
-  }
-  @include m('default') {
-    border-radius: 6px;
-  }
-}
 
-@include e('header') {
-  padding-bottom: 8px;
-  color: #909399;
-  font-size: 12px;
-}
+    @include m('shadow') {
+      background-color: transparent;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+  }
 
-@include e('footer') {
-  padding-top: 8px;
-}
+  // ==================== 头部 ====================
+  @include e('header') {
+    padding-bottom: 8px;
+    color: #909399;
+    font-size: 12px;
+  }
 
-@include e('loading') {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
+  // ==================== 底部 ====================
+  @include e('footer') {
+    padding-top: 8px;
+  }
 
-  @include m('dot') {
-    width: 4px;
-    height: 4px;
-    border-radius: 50%;
-    background-color: #0057ff;
-    animation: el-ai-loading-bounce 1.3s ease-in-out infinite;
+  // ==================== 加载动画 ====================
+  @include e('loading') {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 12px 0;
 
-    @for $i from 1 through 3 {
-      &:nth-child(#{$i}) {
-        animation-delay: #{(-0.32 + ($i - 1) * 0.16)}s;
+    @include m('dot') {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background-color: var(--ela-color-primary, #0057ff);
+      animation: el-ai-loading-bounce 1.3s ease-in-out infinite;
+
+      @for $i from 1 through 3 {
+        &:nth-child(#{$i}) {
+          animation-delay: #{(-0.32 + ($i - 1) * 0.16)}s;
+        }
       }
+    }
+  }
+
+  // ==================== 动态位置修饰符 (配合 BEM 作用域限制) ====================
+
+  // AI 气泡位置 (靠左)
+  &-start {
+    justify-content: flex-start;
+
+    #{$block}__content {
+      justify-content: flex-start;
+    }
+    #{$block}__header {
+      text-align: left;
+    }
+  }
+
+  // 用户气泡位置 (靠右)
+  &-end {
+    justify-content: flex-end;
+
+    #{$block}__avatar {
+      order: 2;
+    }
+    #{$block}__content-wrapper {
+      order: 1;
+    }
+    #{$block}__content {
+      justify-content: flex-end;
+    }
+    #{$block}__header {
+      text-align: right;
     }
   }
 }
 
-// ==================== 核心修复 2：安全限定的作用域 ====================
-// AI 气泡位置 (左侧)
-&-start {
-  justify-content: flex-start;
-
-  // 使用拼接选择器 .ela-bubble__content
-  #{$block}__content {
-    justify-content: flex-start;
-  }
-  #{$block}__header {
-    text-align: left;
-  }
-}
-
-// 用户气泡位置 (右侧)
-&-end {
-  justify-content: flex-end;
-
-  #{$block}__avatar {
-    order: 2;
-  }
-  #{$block}__content-wrapper {
-    order: 1;
-  }
-  #{$block}__content {
-    justify-content: flex-end;
-  }
-  #{$block}__header {
-    text-align: right;
-  }
-}
-
-// 加载动画
+// 加载动画关键帧
 @keyframes el-ai-loading-bounce {
   0%,
   80%,
@@ -153,9 +150,9 @@
     transform: scale(1);
   }
 }
+
 // ==================== 动态注入的 Markdown 样式 ====================
 :deep(.markdown-body) {
-  white-space: normal;
   p {
     margin: 0 0 8px 0;
     line-height: 1.6;
@@ -164,56 +161,64 @@
     margin-bottom: 0;
   }
 
-  /* 行内代码 */
+  /* 行内代码 (比如被反引号包裹的单词) */
   code:not(.hljs) {
-    background-color: rgba(175, 184, 193, 0.2);
-    padding: 2px 4px;
+    background-color: rgba(0, 0, 0, 0.05);
+    padding: 2px 6px;
     border-radius: 4px;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-family:
+      'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     font-size: 0.9em;
-    color: #e83e8c;
+    color: #d946ef;
   }
 
-  /* 代码块容器 */
+  /* 高级代码块容器 */
   .ela-code-block {
-    margin: 12px 0;
-    border-radius: 8px;
+    margin: 16px 0;
+    border-radius: 12px;
     overflow: hidden;
-    background-color: #0d1117; /* GitHub Dark 背景色 */
-    border: 1px solid var(--ela-border-color, #e4e7ed);
+    background-color: #1e1e20; /* 深黑背景 */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* 柔和阴影 */
+    border: none;
 
     /* 代码块头部栏 */
     .ela-code-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 6px 12px;
-      background-color: #161b22;
-      border-bottom: 1px solid #30363d;
+      padding: 8px 16px;
+      background-color: #2b2d31;
+      color: #a1a1aa;
 
       .ela-code-lang {
-        color: #8b949e;
         font-size: 12px;
-        text-transform: uppercase;
-        font-weight: 600;
+        font-family: sans-serif;
+        text-transform: lowercase;
+        letter-spacing: 0.5px;
+        user-select: none;
       }
 
       .ela-code-copy-btn {
         display: flex;
         align-items: center;
-        gap: 4px;
+        gap: 6px;
         background: transparent;
         border: none;
-        color: #8b949e;
+        color: #a1a1aa;
         cursor: pointer;
         font-size: 12px;
-        padding: 4px 8px;
-        border-radius: 4px;
-        transition: all 0.2s;
+        padding: 4px 6px;
+        border-radius: 6px;
+        transition: all 0.2s ease;
 
         &:hover {
-          color: #c9d1d9;
+          color: #f4f4f5;
           background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        svg {
+          width: 14px;
+          height: 14px;
         }
       }
     }
@@ -222,13 +227,29 @@
       margin: 0;
       padding: 16px;
       overflow-x: auto;
+
+      /* 定制深色区域的滚动条 */
+      &::-webkit-scrollbar {
+        height: 8px;
+        width: 8px;
+      }
+      &::-webkit-scrollbar-thumb {
+        background-color: #52525b;
+        border-radius: 4px;
+      }
+      &::-webkit-scrollbar-corner {
+        background-color: transparent;
+      }
     }
 
     code.hljs {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-size: 13px;
-      line-height: 1.5;
+      font-family:
+        'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+        monospace;
+      font-size: 14px;
+      line-height: 1.6;
       background: transparent;
+      padding: 0;
     }
   }
 }

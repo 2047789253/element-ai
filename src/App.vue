@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import { ref, type Ref } from 'vue'
-import Button from './components/Button/Button.vue'
-import Icon from './components/Icon/Icon.vue'
-import Switch from './components/Switch/Switch.vue'
-import Tooltip from './components/Tooltip/Tooltip.vue'
-import Dropdown from './components/Dropdown/Dropdown.vue'
-import Sender from './components/Sender/index.vue'
+// import Button from './components/Button/Button.vue'
+// import Icon from './components/Icon/Icon.vue'
+// import Switch from './components/Switch/Switch.vue'
+// import Tooltip from './components/Tooltip/Tooltip.vue'
+// import Dropdown from './components/Dropdown/Dropdown.vue'
+// import { createMessage } from './components/Message/method'
+import type { MessageItem } from './components/BubbleList/props'
 import Conversations from './components/Conversations/index.vue'
 import BubbleList from './components/BubbleList/index.vue'
-import { createMessage } from './components/Message/method'
-import type { MessageItem } from './components/BubbleList/props'
+import Sender from './components/Sender/index.vue'
 
-const switchValue = ref(false)
+// const switchValue = ref(false)
 const inputText = ref('')
 const bubbleListRef = ref<InstanceType<typeof BubbleList> | null>(null)
 
@@ -91,11 +91,11 @@ const handleSend = () => {
   }, 800)
 }
 
-const mockMenuOptions = [
-  { key: '1', label: 'Item 1', disabled: false },
-  { key: '2', label: 'Item 2', disabled: true },
-  { key: '3', label: 'Item 3', divided: true, disabled: false },
-]
+// const mockMenuOptions = [
+//   { key: '1', label: 'Item 1', disabled: false },
+//   { key: '2', label: 'Item 2', disabled: true },
+//   { key: '3', label: 'Item 3', divided: true, disabled: false },
+// ]
 </script>
 
 <template>
@@ -106,7 +106,7 @@ const mockMenuOptions = [
 
     <main>
       <!-- 基础组件区 -->
-      <section class="demo-section">
+      <!-- <section class="demo-section">
         <h2>基础 UI 组件</h2>
 
         <div class="demo-block">
@@ -144,7 +144,7 @@ const mockMenuOptions = [
             >触发 Message</Button
           >
         </div>
-      </section>
+      </section> -->
 
       <!-- AI 场景组件区 -->
       <section class="demo-section ai-section">
@@ -261,7 +261,7 @@ header h1 {
 /* AI 组件布局 */
 .ai-section .chat-container {
   display: flex;
-  height: 500px;
+  height: 74vh;
   border: 1px solid #dcdfe6;
   border-radius: 8px;
   overflow: hidden;
