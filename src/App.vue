@@ -39,8 +39,9 @@ const mockMenuOptions = [
 
         <div class="demo-block">
           <h3>Button 按钮</h3>
-          <Button type="primary">Primary</Button>
-          <Button type="success" plain>Success</Button>
+          <Button>默认</Button>
+          <Button plain type="primary">Primary</Button>
+          <Button type="success">Success</Button>
           <Button type="warning" round>Warning</Button>
           <Button type="danger" disabled>Danger</Button>
           <Button icon="arrow-up" circle></Button>
