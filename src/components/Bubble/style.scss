@@ -152,90 +152,230 @@
 }
 
 // ==================== 动态注入的 Markdown 样式 ====================
-:deep(.markdown-body) {
+.markdown-body {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ela-text-color, #1f1f1f);
+
+  /* ---------------- 基础段落 ---------------- */
   p {
-    margin: 0 0 8px 0;
-    line-height: 1.6;
+    margin: 0 0 12px 0;
   }
   p:last-child {
     margin-bottom: 0;
   }
 
-  /* 行内代码 (比如被反引号包裹的单词) */
+  /* ---------------- 标题栏 (Headings) ---------------- */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    margin: 24px 0 12px 0;
+    font-weight: 600;
+    line-height: 1.25;
+    color: #111827; /* 略深的标题颜色提升层级 */
+  }
+  h1 {
+    font-size: 1.5em;
+    padding-bottom: 0.3em;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  h2 {
+    font-size: 1.3em;
+    padding-bottom: 0.3em;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  h3 {
+    font-size: 1.1em;
+  }
+  h4,
+  h5,
+  h6 {
+    font-size: 1em;
+  }
+  h1:first-child,
+  h2:first-child,
+  h3:first-child {
+    margin-top: 0;
+  }
+
+  /* ---------------- 列表 (Lists) ---------------- */
+  ul,
+  ol {
+    margin: 0 0 12px 0;
+    padding-left: 24px;
+  }
+  li {
+    margin-bottom: 4px;
+    & > ul,
+    & > ol {
+      margin-top: 4px;
+      margin-bottom: 0;
+    } /* 支持无限嵌套列表 */
+  }
+  li::marker {
+    color: #6b7280;
+  } /* 优雅的灰色列表点 */
+
+  /* ---------------- 引用块 (Blockquotes) ---------------- */
+  blockquote {
+    margin: 16px 0;
+    padding: 8px 16px;
+    color: #4b5563; /* 降低视觉干扰 */
+    background-color: rgba(0, 0, 0, 0.03);
+    border-left: 4px solid #d1d5db; /* 经典的左侧粗边框 */
+    border-radius: 0 8px 8px 0;
+    p:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  /* ---------------- 链接与加粗 (Inline Elements) ---------------- */
+  a {
+    color: #2563eb; /* 科技蓝 */
+    text-decoration: none;
+    font-weight: 500;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+  strong {
+    font-weight: 600;
+    color: #111827;
+  }
+  em {
+    font-style: italic;
+  }
+
+  /* ---------------- 分割线 (Divider) ---------------- */
+  hr {
+    height: 1px;
+    margin: 24px 0;
+    background-color: #e5e7eb;
+    border: none;
+  }
+
+  /* ---------------- 表格 (Tables) - 大模型高频输出 ---------------- */
+  table {
+    display: block; /* 允许表格在容器太小时横向滚动 */
+    max-width: 100%;
+    overflow-x: auto;
+    margin: 16px 0;
+    border-collapse: collapse;
+
+    th,
+    td {
+      padding: 10px 16px;
+      border: 1px solid var(--ela-border-color, #e5e7eb);
+      text-align: left;
+    }
+    th {
+      background-color: rgba(0, 0, 0, 0.04);
+      font-weight: 600;
+      white-space: nowrap; /* 表头不换行 */
+    }
+    tr:nth-child(2n) {
+      background-color: rgba(0, 0, 0, 0.015); /* 提升阅读体验的斑马纹 */
+    }
+  }
+
+  /* ==================== 之前的代码高亮块 (保留) ==================== */
   code:not(.hljs) {
     background-color: rgba(0, 0, 0, 0.05);
     padding: 2px 6px;
     border-radius: 4px;
-    font-family:
-      'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, monospace;
     font-size: 0.9em;
-    color: #d946ef;
+    color: #0057ff;
   }
 
-  /* 高级代码块容器 */
   .ela-code-block {
     margin: 16px 0;
-    border-radius: 12px;
+    border-radius: 8px;
     overflow: hidden;
-    background-color: #1e1e20; /* 深黑背景 */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* 柔和阴影 */
-    border: none;
+    background-color: #282c34; /* 匹配 atom-one-dark 的底色 */
+    border: 1px solid #3e4451;
+    display: flex;
+    flex-direction: column;
 
-    /* 代码块头部栏 */
     .ela-code-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 8px 16px;
-      background-color: #2b2d31;
-      color: #a1a1aa;
+      padding: 0 16px;
+      height: 40px;
+      background-color: #21252b;
+      border-bottom: 1px solid #181a1f;
 
       .ela-code-lang {
-        font-size: 12px;
-        font-family: sans-serif;
-        text-transform: lowercase;
-        letter-spacing: 0.5px;
+        font-size: 13px;
+        font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, sans-serif;
+        color: #abb2bf;
+        font-weight: 500;
+        flex: 1;
+        text-align: left; /* 让语言靠左 */
         user-select: none;
+      }
+
+      .ela-code-action {
+        display: flex;
+        justify-content: flex-end;
       }
 
       .ela-code-copy-btn {
         display: flex;
         align-items: center;
+        justify-content: center;
         gap: 6px;
         background: transparent;
         border: none;
-        color: #a1a1aa;
+        color: #abb2bf;
         cursor: pointer;
         font-size: 12px;
-        padding: 4px 6px;
-        border-radius: 6px;
+        padding: 6px 10px; /* 增加了一点内边距，让点击区域和长文字更宽更舒服 */
+        min-width: 32px;
+        border-radius: 4px;
         transition: all 0.2s ease;
 
         &:hover {
-          color: #f4f4f5;
+          color: #ffffff;
           background-color: rgba(255, 255, 255, 0.1);
         }
-
+        &.is-copied {
+          color: #67c23a;
+          background-color: rgba(103, 194, 58, 0.1);
+        }
         svg {
           width: 14px;
           height: 14px;
         }
+        .btn-text {
+          display: none; /* 默认只显图标，使得整个头部更简洁，类似 VSCode */
+        }
+        &.is-copied .btn-text {
+          display: inline-block;
+          color: #67c23a;
+        }
       }
+    }
+
+    .ela-code-content {
+      background-color: transparent;
     }
 
     pre {
       margin: 0;
       padding: 16px;
       overflow-x: auto;
-
-      /* 定制深色区域的滚动条 */
       &::-webkit-scrollbar {
-        height: 8px;
-        width: 8px;
+        height: 6px;
+        width: 6px;
       }
       &::-webkit-scrollbar-thumb {
-        background-color: #52525b;
-        border-radius: 4px;
+        background-color: #4b5363;
+        border-radius: 3px;
       }
       &::-webkit-scrollbar-corner {
         background-color: transparent;
@@ -243,13 +383,12 @@
     }
 
     code.hljs {
-      font-family:
-        'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-        monospace;
-      font-size: 14px;
-      line-height: 1.6;
+      font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, monospace;
+      font-size: 13px;
+      line-height: 1.5;
       background: transparent;
       padding: 0;
+      color: #abb2bf; /* atom-one-dark 的默认文本颜色 */
     }
   }
 }

@@ -19,7 +19,8 @@ const bubbleListRef = ref<InstanceType<typeof BubbleList> | null>(null)
 const messages: Ref<MessageItem[]> = ref([
   {
     id: 1,
-    content: '你好，请全面展示一下你支持的 Markdown 各种排版格式吧！比如代码块、表格和引用。',
+    content:
+      '你好，请全面展示一下你支持的 Markdown 各种排版格式吧！比如代码块、表格和引用。你好，请全面展示一下你支持的 Markdown 各种排版格式吧！比如代码块、表格和引用。',
     role: 'user',
     typing: false,
   },
@@ -76,7 +77,7 @@ const handleSend = () => {
     // 再次滚动到底部
     setTimeout(() => {
       bubbleListRef.value?.scrollToBottom()
-    }, 100)
+    }, 1000)
 
     // 1.5 秒后移除打字机效果
     const lastMsg = messages.value[messages.value.length - 1]

@@ -45,6 +45,9 @@ import MarkdownIt from 'markdown-it'
 import hljs from 'highlight.js'
 import 'highlight.js/styles/atom-one-dark.css'
 
+// 注入 vue 作为 xml/html 的别名以支持高亮
+hljs.registerAliases(['vue', 'html'], { languageName: 'xml' })
+
 defineOptions({ name: 'Bubble' })
 
 const props = defineProps({ ...bubbleProps })
@@ -84,29 +87,64 @@ const md: MarkdownIt = new MarkdownIt({
   },
 })
 
-// 拦截默认的 fence (代码块) 渲染规则，注入 Mac 风格头部和复制按钮
+// 拦截默认的 fence (代码块) 渲染规则，升级高亮组件视觉体验
 md.renderer.rules.fence = function (tokens: any[], idx: number, options: any): string {
   const token = tokens[idx]
   const code = token.content // 原始代码文本
   const lang = token.info ? token.info.trim() : 'text'
 
-  const highlightedCode = options.highlight
-    ? options.highlight(code, lang, '')
-    : md.utils.escapeHtml(code)
+  // 映射常见语言的标准名称，提升专业感
+  const langMap: Record<string, string> = {
+    ts: 'TypeScript',
+    typescript: 'TypeScript',
+    js: 'JavaScript',
+    javascript: 'JavaScript',
+    vue: 'Vue',
+    html: 'HTML',
+    css: 'CSS',
+    scss: 'SCSS',
+    json: 'JSON',
+    bash: 'Bash',
+    sh: 'Bash',
+    python: 'Python',
+    py: 'Python',
+    java: 'Java',
+    cpp: 'C++',
+    go: 'Go',
+    sql: 'SQL',
+    xml: 'XML',
+    yaml: 'YAML',
+    text: 'Plaintext',
+  }
+  // 取映射表中的规范命名，没有则直接用用户输入的原始文字
+  const displayLang = langMap[lang.toLowerCase()] || lang
 
-  // 必须对 code 编码，防止 HTML 属性解析错误
+  let highlightedCode = ''
+  if (options.highlight) {
+    highlightedCode = options.highlight(code, lang, '')
+  }
+  // 如果没有高亮成功（比如不支持的语言如 vue 等），必须降级并对其进行 HTML 转义
+  if (!highlightedCode) {
+    highlightedCode = md.utils.escapeHtml(code)
+  }
+
   const encodedCode = encodeURIComponent(code)
 
   return `
     <div class="ela-code-block">
       <div class="ela-code-header">
-        <span class="ela-code-lang">${lang}</span>
-        <button class="ela-code-copy-btn" data-code="${encodedCode}">
-          <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-          <span class="btn-text">复制</span>
-        </button>
+        <div class="ela-code-lang">${displayLang}</div>
+        <div class="ela-code-action">
+          <button class="ela-code-copy-btn" data-code="${encodedCode}" title="复制代码">
+            <svg class="copy-icon" viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            <svg class="success-icon" style="display:none;" viewBox="0 0 24 24" width="14" height="14" stroke="#67c23a" stroke-width="2" fill="none"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span class="btn-text">复制代码</span>
+          </button>
+        </div>
       </div>
-      <pre><code class="hljs language-${lang}">${highlightedCode}</code></pre>
+      <div class="ela-code-content">
+        <pre><code class="hljs language-${lang}">${highlightedCode}</code></pre>
+      </div>
     </div>
   `
 }
@@ -120,7 +158,6 @@ const parsedMarkdown = computed(() => {
 
 // ==================== 事件委托：处理复制点击 ====================
 const handleCodeCopy = async (e: MouseEvent) => {
-  // 寻找到点击的具体按钮元素
   const target = (e.target as HTMLElement).closest('.ela-code-copy-btn') as HTMLElement
   if (!target) return
 
@@ -130,14 +167,21 @@ const handleCodeCopy = async (e: MouseEvent) => {
       const codeToCopy = decodeURIComponent(encodedCode)
       await navigator.clipboard.writeText(codeToCopy)
 
-      // 交互反馈：修改按钮文字
       const textSpan = target.querySelector('.btn-text')
-      if (textSpan) {
-        textSpan.innerHTML = '已复制!'
-        target.style.color = '#67c23a' // 变绿
+      const copyIcon = target.querySelector('.copy-icon') as HTMLElement
+      const successIcon = target.querySelector('.success-icon') as HTMLElement
+
+      if (textSpan && copyIcon && successIcon) {
+        textSpan.innerHTML = '复制成功'
+        target.classList.add('is-copied')
+        copyIcon.style.display = 'none'
+        successIcon.style.display = 'inline-block'
+
         setTimeout(() => {
-          textSpan.innerHTML = '复制'
-          target.style.color = '' // 还原
+          textSpan.innerHTML = '复制代码'
+          target.classList.remove('is-copied')
+          copyIcon.style.display = 'inline-block'
+          successIcon.style.display = 'none'
         }, 2000)
       }
     } catch (err) {
