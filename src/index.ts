@@ -9,6 +9,7 @@ import Bubble from './components/Bubble/index.vue'
 import Sender from './components/Sender/index.vue'
 import Conversations from './components/Conversations/index.vue'
 import BubbleList from './components/BubbleList/index.vue'
+import Markdown from './components/Markdown/index.vue'
 
 const components = {
   Button,
@@ -20,6 +21,7 @@ const components = {
   Sender,
   Conversations,
   BubbleList,
+  Markdown,
 }
 
 const install = (app: App) => {
@@ -41,6 +43,7 @@ export {
   Sender,
   Conversations,
   BubbleList,
+  Markdown,
 }
 
 export default {

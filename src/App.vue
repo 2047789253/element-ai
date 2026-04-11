@@ -10,10 +10,57 @@ import type { MessageItem } from './components/BubbleList/props'
 import Conversations from './components/Conversations/index.vue'
 import BubbleList from './components/BubbleList/index.vue'
 import Sender from './components/Sender/index.vue'
+import Markdown from './components/Markdown/index.vue'
 
 // const switchValue = ref(false)
 const inputText = ref('')
 const bubbleListRef = ref<InstanceType<typeof BubbleList> | null>(null)
+const markdownTheme = ref<'light' | 'dark'>('light')
+
+const markdownDemoContent = [
+  '# Markdown 新能力总览',
+  '',
+  '支持 **GFM 表格**、`行内代码`、引用块、代码高亮和 KaTeX 数学公式。',
+  '',
+  '## 1) 数学公式',
+  '',
+  '行内公式：$E=mc^2$',
+  '',
+  '$$',
+  '\\int_0^1 x^2\\,dx = \\frac{1}{3}',
+  '$$',
+  '',
+  '## 2) 表格',
+  '',
+  '| 能力 | 状态 | 说明 |',
+  '| --- | --- | --- |',
+  '| GFM | ✅ | 支持表格、删除线、任务列表 |',
+  '| KaTeX | ✅ | 支持行内和块级公式 |',
+  '| 代码拆分 | ✅ | 代码块可走自定义渲染插槽 |',
+  '',
+  '## 3) 代码块',
+  '',
+  '```ts',
+  'interface MarkdownPart {',
+  '  type: "html" | "code"',
+  '  content: string',
+  '  language?: string',
+  '}',
+  '```',
+  '',
+  '内联 HTML：<span style="color:#409eff">蓝色文本</span>（危险属性会被过滤）。',
+  '',
+  '> 右侧示例使用了 `#code` 插槽来自定义代码块外观。',
+].join('\n')
+
+const markdownCustomSlotContent = [
+  '```javascript',
+  'const greet = (name) => "hello " + name',
+  'console.log(greet("element-ai"))',
+  '```',
+  '',
+  '你可以在这里继续写业务文档，让代码块沿用统一的团队样式。',
+].join('\n')
 
 // BubbleList 示例消息数据
 const messages: Ref<MessageItem[]> = ref([
@@ -147,6 +194,52 @@ const handleSend = () => {
         </div>
       </section> -->
 
+      <section class="demo-section markdown-showcase">
+        <h2>Markdown 新能力演示</h2>
+        <p class="subtitle">
+          展示点：GFM 排版、KaTeX 公式、代码块分段渲染，以及通过 <code>#code</code>
+          插槽接管代码区 UI。
+        </p>
+
+        <div class="markdown-toolbar">
+          <button
+            class="theme-btn"
+            :class="{ 'is-active': markdownTheme === 'light' }"
+            type="button"
+            @click="markdownTheme = 'light'"
+          >
+            浅色主题
+          </button>
+          <button
+            class="theme-btn"
+            :class="{ 'is-active': markdownTheme === 'dark' }"
+            type="button"
+            @click="markdownTheme = 'dark'"
+          >
+            深色主题
+          </button>
+        </div>
+
+        <div class="markdown-grid">
+          <div class="markdown-panel">
+            <h3>默认渲染（内置高亮）</h3>
+            <Markdown :content="markdownDemoContent" :theme="markdownTheme" />
+          </div>
+
+          <div class="markdown-panel">
+            <h3>自定义代码块插槽</h3>
+            <Markdown :content="markdownCustomSlotContent" :theme="markdownTheme">
+              <template #code="{ content, language }">
+                <div class="custom-code-block">
+                  <div class="custom-code-title">自定义代码渲染 · {{ language || 'text' }}</div>
+                  <pre><code>{{ content }}</code></pre>
+                </div>
+              </template>
+            </Markdown>
+          </div>
+        </div>
+      </section>
+
       <!-- AI 场景组件区 -->
       <section class="demo-section ai-section">
         <h2>AI 聊天场景组件</h2>
@@ -235,6 +328,82 @@ header h1 {
   color: #606266;
 }
 
+.markdown-toolbar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.theme-btn {
+  border: 1px solid #dcdfe6;
+  background: #fff;
+  color: #606266;
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.theme-btn:hover {
+  border-color: #409eff;
+  color: #409eff;
+}
+
+.theme-btn.is-active {
+  background: #409eff;
+  color: #fff;
+  border-color: #409eff;
+}
+
+.markdown-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.markdown-panel {
+  border: 1px solid #ebeef5;
+  border-radius: 10px;
+  padding: 16px;
+  background: #fff;
+}
+
+.markdown-panel h3 {
+  margin: 0 0 14px;
+  font-size: 1rem;
+  color: #303133;
+}
+
+.markdown-panel .el-ai-markdown__markdown-body {
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.custom-code-block {
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #2f3f60;
+  background: #0f172a;
+}
+
+.custom-code-title {
+  background: #1e293b;
+  color: #dbeafe;
+  font-size: 12px;
+  padding: 8px 12px;
+}
+
+.custom-code-block pre {
+  margin: 0;
+  padding: 12px;
+  overflow-x: auto;
+}
+
+.custom-code-block code {
+  color: #e2e8f0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
 .demo-block {
   margin-bottom: 20px;
   padding: 20px;
@@ -293,5 +462,11 @@ header h1 {
   padding: 15px;
   border-top: 1px solid #dcdfe6;
   background: #fff;
+}
+
+@media (max-width: 992px) {
+  .markdown-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

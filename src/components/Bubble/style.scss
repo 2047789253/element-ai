@@ -1,356 +1,119 @@
 @use '../../styles/mixins.scss' as *;
 @use '../../styles/vars.scss' as *;
 
-// ==================== Bubble 气泡基础容器 ====================
-@include b('bubble') {
-  // 核心逻辑：捕获根选择器，防止 @at-root 导致的样式逃逸
-  $block: &;
-
+@include b(bubble) {
   display: flex;
-  align-items: flex-start; // 修复：防止气泡在纵向上被拉伸
+  margin-bottom: 24px;
   gap: 12px;
   width: 100%;
-  margin-bottom: 8px;
 
-  // 头像区域
-  @include e('avatar') {
+  @include e(avatar) {
     flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding-top: 4px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    overflow: hidden;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    @include e(avatar-placeholder) {
+      width: 100%;
+      height: 100%;
+      background-color: var(--ela-color-primary-light-9);
+      color: var(--ela-color-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
   }
 
-  // 内容包装器
-  @include e('content-wrapper') {
-    flex: 1;
-    width: 0; // 核心：强制触发 BFC，防止长文本撑破容器
+  @include e(main) {
     display: flex;
     flex-direction: column;
-  }
-
-  // ==================== 内容核心样式 ====================
-  @include e('content') {
-    display: flex;
-    align-items: flex-start;
-    width: 100%;
-
-    // 基础文本排版
-    @include m('text') {
-      font-size: 15px;
-      line-height: 1.6;
-      color: var(--ela-text-color, #1f1f1f);
-      word-break: break-word;
-      white-space: normal; // 适配 AST 渲染
-      text-align: left;
-    }
-
-    // 🌟 用户提问风格：现代不对称大圆角
-    @include m('filled') {
-      background-color: var(--ela-bubble-user-bg, #f0f4f9);
-      padding: 12px 20px;
-      // 视觉亮点：右下角为小圆角，形成“对话尾巴”引导感
-      border-radius: 22px 22px 4px 22px;
-      border: none;
-      align-self: flex-end; // 确保气泡块本身靠右
-    }
-
-    // 🌟 助手回答风格：沉浸式阅读，无边框
-    @include m('borderless') {
-      background-color: transparent;
-      padding: 6px 0 12px 0;
-      border: none;
-      border-radius: 0;
-    }
-  }
-
-  // 头部 (显示名称/时间)
-  @include e('header') {
-    padding-bottom: 4px;
-    color: #909399;
-    font-size: 12px;
-  }
-
-  // 底部 (显示操作按钮)
-  @include e('footer') {
-    padding-top: 8px;
-  }
-
-  // ==================== 状态与位置控制 ====================
-
-  // AI 居左排版
-  &-start {
-    justify-content: flex-start;
-
-    #{$block}__content {
-      justify-content: flex-start;
-    }
-    #{$block}__header {
-      text-align: left;
-    }
-  }
-
-  // 用户居右排版
-  &-end {
-    justify-content: flex-end;
-
-    #{$block}__avatar {
-      order: 2; // 头像放到右侧
-    }
-    #{$block}__content-wrapper {
-      order: 1;
-      align-items: flex-end; // 确保内部气泡靠右
-    }
-    #{$block}__content {
-      justify-content: flex-end;
-    }
-    #{$block}__header {
-      text-align: right;
-    }
-  }
-
-  // 加载中动画 (三个跳动的小圆点)
-  @include e('loading') {
-    display: inline-flex;
-    align-items: center;
+    max-width: calc(100% - 80px);
     gap: 4px;
-    padding: 12px 0;
+  }
 
-    @include m('dot') {
-      width: 5px;
-      height: 5px;
+  @include e(header) {
+    font-size: 12px;
+    color: var(--ela-text-color-secondary);
+  }
+
+  @include e(content) {
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    line-height: 1.6;
+    position: relative;
+    word-break: break-word;
+    background-color: var(--ela-fill-color-light); // 默认背景
+  }
+
+  @include e(footer) {
+    font-size: 12px;
+    color: var(--ela-text-color-placeholder);
+    margin-top: 4px;
+  }
+
+  // 不同位置的修饰符
+  @include m(start) {
+    flex-direction: row;
+    @include e(content) {
+      border-top-left-radius: 2px; // 聊天气泡的小尖角效果
+      background-color: var(--ela-bg-color);
+      border: 1px solid var(--ela-border-color-lighter);
+    }
+  }
+
+  @include m(end) {
+    flex-direction: row-reverse; // 用户侧靠右
+    text-align: right;
+
+    @include e(main) {
+      align-items: flex-end;
+    }
+
+    @include e(content) {
+      border-top-right-radius: 2px;
+      background-color: var(--ela-color-primary);
+      color: #fff;
+      text-align: left; // 内部文字保持靠左
+    }
+  }
+
+  // 加载中打字效果动画
+  @include e(loading) {
+    display: inline-flex;
+    gap: 4px;
+    padding: 4px 0;
+    .dot {
+      width: 4px;
+      height: 4px;
+      background-color: currentColor;
       border-radius: 50%;
-      background-color: var(--ela-color-primary, #0057ff);
-      animation: el-ai-loading-bounce 1.3s ease-in-out infinite;
-
-      @for $i from 1 through 3 {
-        &:nth-child(#{$i}) {
-          animation-delay: #{(-0.32 + ($i - 1) * 0.16)}s;
-        }
+      animation: bubble-dot-blink 1.4s infinite both;
+      &:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+      &:nth-child(3) {
+        animation-delay: 0.4s;
       }
     }
   }
 }
 
-// ==================== 动态渲染的 Markdown 排版样式 ====================
-.markdown-body {
-  font-size: 15px;
-  line-height: 1.65;
-  color: inherit;
-
-  p {
-    margin: 0 0 12px 0;
-  }
-  p:last-child {
-    margin-bottom: 0;
-  }
-
-  // 标题美化
-  h1,
-  h2,
-  h3 {
-    margin: 20px 0 10px 0;
-    font-weight: 600;
-    line-height: 1.25;
-  }
-  h1 {
-    font-size: 1.4em;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 0.3em;
-  }
-  h2 {
-    font-size: 1.25em;
-  }
-
-  // 列表排版
-  ul,
-  ol {
-    margin: 0 0 12px 0;
-    padding-left: 20px;
-  }
-  li {
-    margin-bottom: 4px;
-  }
-
-  // 引用块
-  blockquote {
-    margin: 12px 0;
-    padding: 0 16px;
-    color: #6a737d;
-    border-left: 4px solid #dfe2e5;
-  }
-
-  // 表格排版 (AST 渲染核心适配)
-  table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    margin: 16px 0;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    overflow: hidden;
-
-    th {
-      background-color: #f9fafb;
-      font-weight: 600;
-      padding: 10px 12px;
-      border-bottom: 1px solid #e5e7eb;
-      text-align: left;
-    }
-    td {
-      padding: 10px 12px;
-      border-bottom: 1px solid #f3f4f6;
-    }
-    tr:last-child td {
-      border-bottom: none;
-    }
-  }
-
-  // 行内代码
-  code:not(.hljs) {
-    background-color: rgba(0, 0, 0, 0.05);
-    padding: 2px 5px;
-    border-radius: 4px;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    font-size: 0.9em;
-    color: #eb5757;
-  }
-
-  // KaTeX 公式适配
-  .katex-display {
-    margin: 14px 0;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding-bottom: 2px;
-  }
-
-  .katex {
-    font-size: 1.02em;
-  }
-
-  // ==================== 核心：Mac 风格代码块样式 ====================
-  .ela-code-block {
-    margin: 16px 0;
-    border-radius: 10px;
-    overflow: hidden;
-    background-color: #1e1e20;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    border: 1px solid #303033;
-
-    // 顶部 Header
-    .ela-code-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 16px;
-      background-color: #2b2b2d;
-      border-bottom: 1px solid #1e1e20;
-
-      // Mac 灯点
-      .ela-code-mac-dots {
-        display: flex;
-        gap: 6px;
-        width: 80px;
-        span {
-          width: 11px;
-          height: 11px;
-          border-radius: 50%;
-        }
-        span:nth-child(1) {
-          background-color: #ff5f56;
-        }
-        span:nth-child(2) {
-          background-color: #ffbd2e;
-        }
-        span:nth-child(3) {
-          background-color: #27c93f;
-        }
-      }
-
-      // 居中的语言标识
-      .ela-code-lang {
-        flex: 1;
-        text-align: center;
-        color: #a1a1aa;
-        font-size: 12px;
-        font-weight: 500;
-        text-transform: lowercase;
-        user-select: none;
-      }
-
-      // 复制操作区
-      .ela-code-actions {
-        display: flex;
-        justify-content: flex-end;
-        width: 80px;
-
-        .ela-code-copy-btn {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          background: transparent;
-          border: none;
-          color: #a1a1aa;
-          cursor: pointer;
-          font-size: 12px;
-          padding: 4px 6px;
-          border-radius: 6px;
-          transition: all 0.2s;
-
-          &:hover {
-            color: #f4f4f5;
-            background-color: rgba(255, 255, 255, 0.1);
-          }
-          svg {
-            width: 14px;
-            height: 14px;
-          }
-        }
-      }
-    }
-
-    // 代码主体内容
-    .ela-code-body {
-      pre {
-        margin: 0;
-        padding: 16px;
-        overflow-x: auto;
-
-        // 优雅的深色滚动条
-        &::-webkit-scrollbar {
-          height: 8px;
-          width: 8px;
-        }
-        &::-webkit-scrollbar-thumb {
-          background-color: #3f3f46;
-          border-radius: 10px;
-        }
-        &::-webkit-scrollbar-corner {
-          background-color: transparent;
-        }
-      }
-
-      code.hljs {
-        font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
-        font-size: 14px;
-        line-height: 1.6;
-        background: transparent;
-        padding: 0;
-      }
-    }
-  }
-}
-
-// 跳动动画关键帧
-@keyframes el-ai-loading-bounce {
+@keyframes bubble-dot-blink {
   0%,
   80%,
   100% {
-    opacity: 0.3;
-    transform: scale(0.8);
+    opacity: 0;
   }
   40% {
     opacity: 1;
-    transform: scale(1);
   }
 }

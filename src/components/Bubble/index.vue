@@ -1,85 +1,54 @@
 <template>
-  <div :class="[ns.b(), ns.b(placement), ns.m(footerTrigger + '-footer')]">
-    <div v-if="hasAvatar" :class="ns.e('avatar')">
-      <slot name="avatar"></slot>
-    </div>
-    <div :class="ns.e('content-wrapper')">
-      <div v-if="loading" :class="ns.e('loading')">
-        <span :class="ns.em('loading', 'dot')"></span><span :class="ns.em('loading', 'dot')"></span
-        ><span :class="ns.em('loading', 'dot')"></span>
-      </div>
-      <template v-else>
-        <div v-if="hasHeader" :class="ns.e('header')">
-          <slot name="header"></slot>
-        </div>
-        <div :class="ns.e('content')">
-          <div
-            :class="[ns.em('content', 'text'), ns.em('content', variant), ns.em('content', shape)]"
-          >
-            <Markdown v-if="isMarkdown" :content="contentData" />
-            <slot v-else :content="contentData">
-              {{ contentData }}
-            </slot>
+  <div :class="[ns.b(), ns.m(placement)]">
+    <div :class="ns.e('avatar')">
+      <slot name="avatar">
+        <template v-if="typeof avatar === 'string'">
+          <img v-if="avatar" :src="avatar" alt="avatar" />
+          <div v-else :class="ns.e('avatar-placeholder')">
+            {{ (header.charAt(0) || 'A').toUpperCase() }}
           </div>
+        </template>
+        <component :is="avatar" v-else-if="avatar" />
+      </slot>
+    </div>
+
+    <div :class="ns.e('main')">
+      <div v-if="header || $slots.header" :class="ns.e('header')">
+        <slot name="header">{{ header }}</slot>
+      </div>
+
+      <div :class="ns.e('content')">
+        <slot>
+          <ElAMarkdown :content="content" />
+        </slot>
+
+        <div v-if="loading" :class="ns.e('loading')">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
         </div>
-        <div v-if="hasFooter" :class="ns.e('footer')">
-          <slot name="footer"></slot>
-        </div>
-      </template>
+      </div>
+
+      <div v-if="footer || $slots.footer" :class="ns.e('footer')">
+        <slot name="footer">{{ footer }}</slot>
+      </div>
+    </div>
+
+    <div v-if="$slots.actions" :class="ns.e('actions')">
+      <slot name="actions"></slot>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { useNamespace, useTheme, useTyperwriter } from '../../hooks'
+import { useNamespace } from '../../hooks'
 import { bubbleProps } from './props'
-import { computed, watch, useSlots } from 'vue'
-import Markdown from '../Markdown/index.vue' // 引入新引擎
+import ElAMarkdown from '../Markdown/index.vue'
 
-defineOptions({ name: 'Bubble' })
+defineOptions({
+  name: 'ElABubble',
+})
 
-const props = defineProps({ ...bubbleProps })
+defineProps(bubbleProps)
 const ns = useNamespace('bubble')
-const themeRef = computed(() => props.theme)
-useTheme(themeRef)
-const slots = useSlots()
-const hasHeader = computed(() => !!slots.header)
-const hasAvatar = computed(() => !!slots.avatar)
-const hasFooter = computed(() => !!slots.footer)
-
-const {
-  content: typerwriterContent,
-  setText,
-  start,
-  setConfig,
-  done: overTyperwriter,
-} = useTyperwriter()
-
-// 数据源
-const contentData = computed(() => (props.typing ? typerwriterContent.value : props.content))
-
-watch(
-  () => props.content,
-  (newVal) => {
-    if (props.typing) setText(newVal)
-  },
-  { immediate: true },
-)
-watch(
-  () => props.typingOver,
-  (newVal, oldVal) => {
-    setConfig({ staticText: newVal ? '' : '' })
-    if (oldVal === false && newVal === true) overTyperwriter()
-  },
-  { immediate: true },
-)
-watch(
-  () => props.loading,
-  () => {
-    if (props.loading === false && props.typing) start()
-  },
-  { immediate: true },
-)
-
-defineExpose({ overTyperwriter })
 </script>
