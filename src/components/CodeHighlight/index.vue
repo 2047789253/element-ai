@@ -1,8 +1,8 @@
 <template>
   <div class="ela-code-block">
     <div class="ela-code-header">
-      <div class="ela-code-mac-dots"><span></span><span></span><span></span></div>
       <span class="ela-code-lang">{{ lang }}</span>
+
       <div class="ela-code-actions">
         <button class="ela-code-copy-btn" @click="handleCopy">
           <svg
@@ -76,3 +76,40 @@ const handleCopy = async () => {
   }
 }
 </script>
+<style scoped>
+.ela-code-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* 这一行最关键：让两端的元素分别靠左和靠右 */
+  padding: 8px 16px; /* 根据你的组件库整体风格调整间距 */
+  background-color: #282c34; /* 代码块头部的背景色，可根据你的主题调整 */
+  color: rgb(33, 95, 210); /* 语言文字的颜色 */
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  font-size: 14px;
+}
+
+.ela-code-actions {
+  display: flex;
+  align-items: center;
+}
+
+.ela-code-copy-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  color: #abb2bf;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.ela-code-copy-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+</style>

@@ -1,78 +1,74 @@
-<script lang="ts">
-import { defineComponent, h, Fragment, type VNode, type VNodeArrayChildren } from 'vue'
-import { unified } from 'unified'
-import remarkParse from 'remark-parse'
-import remarkGfm from 'remark-gfm'
-import remarkMath from 'remark-math' // 🌟 新增：解析 $...$
-import remarkRehype from 'remark-rehype'
-import rehypeKatex from 'rehype-katex' // 🌟 新增：将数学节点转为 HAST
+<template>
+  <div :class="[ns.b(), ns.e('markdown-body'), theme === 'dark' ? ns.m('dark') : '']">
+    <template v-for="(part, index) in parts" :key="index">
+      <slot
+        v-if="part.type === 'code'"
+        name="code"
+        :content="part.content"
+        :language="part.language"
+        :theme="theme"
+      >
+        <CodeHighlight :code="part.content" :lang="part.language">
+          <template #header="props">
+            <slot name="code-highlight-header" v-bind="props"></slot>
+          </template>
+        </CodeHighlight>
+      </slot>
+
+      <VNodeRenderer v-else :content="part.content" />
+    </template>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, computed, watch } from 'vue'
+import { mergeWith } from 'lodash-es'
+
+// 引入刚刚写的解析工具
+import {
+  processMarkdownToParts,
+  type MarkdownPart,
+  defaultCustomPlugins,
+  createBaseProcessor,
+  katexProcess,
+} from '../../utils/markdown-parse'
+
+// 引入你的 Hook 和 组件
+import { useNamespace, useTheme } from '../../hooks'
 import CodeHighlight from '../CodeHighlight/index.vue'
-import 'katex/dist/katex.min.css'
+import { markdownProps } from './types.ts'
 
-export default defineComponent({
+defineOptions({
   name: 'ElAMarkdown',
-  props: {
-    content: { type: String, default: '' },
-  },
-  setup(props) {
-    const transform = (node: any): VNode | string | null => {
-      if (node.type === 'text') return node.value
-
-      if (node.type === 'element') {
-        const { tagName, properties, children } = node
-
-        // 1. 拦截代码块
-        if (tagName === 'pre') {
-          const codeNode = children?.find((c: any) => c.tagName === 'code')
-          if (codeNode) {
-            const extractText = (n: any): string => {
-              if (n.type === 'text') return n.value
-              if (n.children) return n.children.map(extractText).join('')
-              return ''
-            }
-            const lang = codeNode.properties?.className?.[0]?.replace('language-', '') || 'text'
-            return h(CodeHighlight, { code: extractText(codeNode), lang })
-          }
-        }
-
-        // 2. 普通标签转换
-        const propsData = { ...properties }
-        if (Array.isArray(propsData.className)) {
-          propsData.class = propsData.className.join(' ')
-          delete propsData.className
-        }
-
-        const vnodeChildren = (children ? children.map(transform) : []) as VNodeArrayChildren
-        return h(tagName, propsData, vnodeChildren)
-      }
-
-      if (node.type === 'root') {
-        return h(
-          'div',
-          { class: 'markdown-body' },
-          (node.children ? node.children.map(transform) : []) as VNodeArrayChildren,
-        )
-      }
-      return null
-    }
-
-    return () => {
-      try {
-        // 🌟 升级管道：增加数学公式的处理流
-        const processor = unified()
-          .use(remarkParse)
-          .use(remarkGfm)
-          .use(remarkMath) // 解析 Markdown 中的 $
-          .use(remarkRehype)
-          .use(rehypeKatex) // 将数学 AST 转为 HTML 结构
-
-        const hast = processor.runSync(processor.parse(props.content))
-        return transform(hast)
-      } catch (err) {
-        console.error('Markdown 渲染失败:', err)
-        return h(Fragment, [props.content])
-      }
-    }
-  },
 })
+
+const ns = useNamespace('markdown')
+const props = defineProps(markdownProps)
+
+// VNode 渲染器，由于我们把 AST 转成了 VNode，在 Vue 里可以直接返回它
+const VNodeRenderer = (vnodeParams: { content: any }) => {
+  return vnodeParams.content
+}
+
+const parts = ref<MarkdownPart[]>([])
+const themeRef = computed(() => props.theme)
+const { theme } = useTheme(themeRef)
+
+const processor = computed(() => {
+  const plugins = mergeWith([], defaultCustomPlugins, props.remarkPlugins)
+  return createBaseProcessor(plugins)
+})
+
+watch(
+  [() => props.content, () => processor.value],
+  async () => {
+    if (!props.content) {
+      parts.value = []
+      return
+    }
+
+    parts.value = await processMarkdownToParts(katexProcess(props.content), processor.value)
+  },
+  { immediate: true },
+)
 </script>
