@@ -1,17 +1,16 @@
 @use '../../styles/mixins.scss' as *;
-@use '../../styles/vars.scss' as *;
 
-@include b(bubble) {
+@include b('bubble') {
   display: flex;
   margin-bottom: 24px;
   gap: 12px;
   width: 100%;
 
-  @include e(avatar) {
+  @include e('avatar') {
     flex-shrink: 0;
     width: 32px;
     height: 32px;
-    border-radius: 50%;
+    border-radius: var(--#{$namespace}-border-radius-circle);
     overflow: hidden;
 
     img {
@@ -20,82 +19,113 @@
       object-fit: cover;
     }
 
-    @include e(avatar-placeholder) {
+    @include e('avatar-placeholder') {
       width: 100%;
       height: 100%;
-      background-color: var(--ela-color-primary-light-9);
-      color: var(--ela-color-primary);
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      background-color: var(--#{$namespace}-color-primary-light-9);
+      color: var(--#{$namespace}-color-primary);
+      @include flex(center, center);
       font-weight: bold;
     }
   }
 
-  @include e(main) {
+  @include e('main') {
     display: flex;
     flex-direction: column;
     max-width: calc(100% - 80px);
     gap: 4px;
   }
 
-  @include e(header) {
+  @include e('header') {
     font-size: 12px;
-    color: var(--ela-text-color-secondary);
+    color: var(--#{$namespace}-text-color-secondary);
   }
 
-  @include e(content) {
+  @include e('content') {
     padding: 12px 16px;
-    border-radius: 12px;
     font-size: 14px;
     line-height: 1.6;
     position: relative;
     word-break: break-word;
-    background-color: var(--ela-fill-color-light); // 默认背景
+    border-radius: var(--#{$namespace}-bubble-radius, 12px);
+
+    // 颜色优先使用 Props 注入的变量，否则回退到全局主题变量
+    background-color: var(--#{$namespace}-bubble-bg-color, var(--#{$namespace}-bubble-content-bg));
+    color: var(--#{$namespace}-bubble-text-color, var(--#{$namespace}-bubble-content-color));
+
+    // 让 Markdown 文本元素跟随气泡文字色，避免暗黑主题下标题颜色被全局重置覆盖
+    .#{$namespace}-markdown,
+    .#{$namespace}-markdown__markdown-body {
+      color: inherit;
+    }
+
+    .#{$namespace}-markdown :where(p, li, blockquote, h1, h2, h3, h4, h5, h6, strong, em, a) {
+      color: inherit;
+    }
   }
 
-  @include e(footer) {
+  @include e('footer') {
     font-size: 12px;
-    color: var(--ela-text-color-placeholder);
+    color: var(--#{$namespace}-text-color-light);
     margin-top: 4px;
   }
 
-  // 不同位置的修饰符
-  @include m(start) {
+  // ==================== 形状变量控制 ====================
+  @include m('shape-square') {
+    --#{$namespace}-bubble-radius: 4px;
+  }
+  @include m('shape-round') {
+    --#{$namespace}-bubble-radius: 16px;
+  }
+
+  // ==================== 位置修饰符 ====================
+
+  // AI 侧 (靠左)：左上角直角，其余三侧圆角
+  @include m('start') {
     flex-direction: row;
-    @include e(content) {
-      border-top-left-radius: 2px; // 聊天气泡的小尖角效果
-      background-color: var(--ela-bg-color);
-      border: 1px solid var(--ela-border-color-lighter);
+    .#{$B}__content {
+      border-radius: 0 var(--#{$namespace}-bubble-radius, 12px)
+        var(--#{$namespace}-bubble-radius, 12px) var(--#{$namespace}-bubble-radius, 12px);
+
+      background-color: var(
+        --#{$namespace}-bubble-bg-color,
+        var(--#{$namespace}-bubble-content-bg)
+      );
+      color: var(--#{$namespace}-bubble-text-color, var(--#{$namespace}-bubble-content-color));
+      border: 1px solid var(--#{$namespace}-border-color-light);
     }
   }
 
-  @include m(end) {
-    flex-direction: row-reverse; // 用户侧靠右
+  // 用户侧 (靠右)：右上角直角，其余三侧圆角
+  @include m('end') {
+    flex-direction: row-reverse;
     text-align: right;
 
-    @include e(main) {
+    .#{$B}__main {
       align-items: flex-end;
     }
 
-    @include e(content) {
-      border-top-right-radius: 2px;
-      background-color: var(--ela-color-primary);
-      color: #fff;
-      text-align: left; // 内部文字保持靠左
+    .#{$B}__content {
+      border-radius: var(--#{$namespace}-bubble-radius, 12px) 0
+        var(--#{$namespace}-bubble-radius, 12px) var(--#{$namespace}-bubble-radius, 12px);
+
+      text-align: left;
+      background-color: var(--#{$namespace}-bubble-bg-color, var(--#{$namespace}-color-primary));
+      color: var(--#{$namespace}-bubble-text-color, var(--#{$namespace}-color-white));
     }
   }
 
-  // 加载中打字效果动画
-  @include e(loading) {
+  // 加载中打点动画
+  @include e('loading') {
     display: inline-flex;
     gap: 4px;
     padding: 4px 0;
+
     .dot {
       width: 4px;
       height: 4px;
       background-color: currentColor;
-      border-radius: 50%;
+      border-radius: var(--#{$namespace}-border-radius-circle);
       animation: bubble-dot-blink 1.4s infinite both;
       &:nth-child(2) {
         animation-delay: 0.2s;

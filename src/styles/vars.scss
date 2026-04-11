@@ -13,7 +13,8 @@ $colors: (
 );
 
 // 2. 根变量定义 (生成层)
-:root {
+:root,
+[data-el-ai-theme='light'] {
   // 基础颜色
   --#{$namespace}-color-white: #ffffff;
   --#{$namespace}-color-black: #000000;
@@ -28,15 +29,29 @@ $colors: (
     --#{$namespace}-color-#{$type}-dark-2: #{color.mix(#000000, $color, 20%)};
   }
 
+  // 字体与排版
+  --#{$namespace}-font-family:
+    'Inter', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  --#{$namespace}-font-size-base: 14px;
+  --#{$namespace}-font-size-small: 12px;
+  --#{$namespace}-font-weight-primary: 500;
+
   // 文本与边框
   --#{$namespace}-text-color: #303133;
+  --#{$namespace}-text-color-primary: #303133;
   --#{$namespace}-text-color-regular: #606266;
   --#{$namespace}-text-color-secondary: #909399;
   --#{$namespace}-text-color-light: #c0c4cc;
   --#{$namespace}-border-color: #dcdfe6;
   --#{$namespace}-border-color-light: #e4e7ed;
+  --#{$namespace}-border-color-lighter: #ebeef5;
   --#{$namespace}-fill-color: #f0f2f5;
   --#{$namespace}-bg-color: #ffffff;
+  --#{$namespace}-header-bg-color: rgba(0, 0, 0, 0.06);
+  --#{$namespace}-content-bg-color: #fafafa;
+  --#{$namespace}-color-border-secondary: #f0f0f0;
+  --#{$namespace}-copy-bg-color: rgba(0, 0, 0, 0.07);
+  --#{$namespace}-scrollbar-thumb-bg-color: rgba(17, 25, 37, 0.15);
 
   // 圆角系统
   --#{$namespace}-border-radius-base: 4px;
@@ -52,6 +67,43 @@ $colors: (
   --#{$namespace}-button-hover-bg-color: var(--#{$namespace}-color-primary-light-9);
   --#{$namespace}-button-hover-border-color: var(--#{$namespace}-color-primary-light-5);
   --#{$namespace}-button-hover-text-color: var(--#{$namespace}-color-primary);
+  --#{$namespace}-button-active-bg-color: var(--#{$namespace}-color-primary-light-8);
+  --#{$namespace}-button-active-border-color: var(--#{$namespace}-color-primary);
+  --#{$namespace}-button-active-text-color: var(--#{$namespace}-color-primary-dark-2);
+
+  @each $type, $color in $colors {
+    --#{$namespace}-button-#{$type}-bg-color: var(--#{$namespace}-color-#{$type});
+    --#{$namespace}-button-#{$type}-border-color: var(--#{$namespace}-color-#{$type});
+    --#{$namespace}-button-#{$type}-text-color: var(--#{$namespace}-color-white);
+    --#{$namespace}-button-#{$type}-hover-bg-color: var(--#{$namespace}-color-#{$type}-light-6);
+    --#{$namespace}-button-#{$type}-hover-border-color: var(--#{$namespace}-color-#{$type}-light-6);
+    --#{$namespace}-button-#{$type}-active-bg-color: var(--#{$namespace}-color-#{$type}-dark-2);
+    --#{$namespace}-button-#{$type}-active-border-color: var(--#{$namespace}-color-#{$type}-dark-2);
+
+    --#{$namespace}-button-#{$type}-plain-text-color: var(--#{$namespace}-color-#{$type});
+    --#{$namespace}-button-#{$type}-plain-border-color: var(--#{$namespace}-color-#{$type}-light-5);
+    --#{$namespace}-button-#{$type}-plain-hover-bg-color: var(
+      --#{$namespace}-color-#{$type}-light-9
+    );
+    --#{$namespace}-button-#{$type}-plain-hover-border-color: var(
+      --#{$namespace}-color-#{$type}-light-8
+    );
+    --#{$namespace}-button-#{$type}-plain-active-bg-color: var(
+      --#{$namespace}-color-#{$type}-light-8
+    );
+    --#{$namespace}-button-#{$type}-plain-active-border-color: var(--#{$namespace}-color-#{$type});
+  }
+
+  // CodeHighlight token colors (light)
+  --#{$namespace}-code-token-text: #1f2328;
+  --#{$namespace}-code-token-comment: #6e7781;
+  --#{$namespace}-code-token-keyword: #cf222e;
+  --#{$namespace}-code-token-string: #0a3069;
+  --#{$namespace}-code-token-number: #0550ae;
+  --#{$namespace}-code-token-title: #8250df;
+  --#{$namespace}-code-token-attr: #0a3069;
+  --#{$namespace}-code-token-type: #953800;
+  --#{$namespace}-code-token-built-in: #0550ae;
 
   // Message
   --#{$namespace}-message-bg-color: var(--#{$namespace}-color-info-light-9);
@@ -77,7 +129,94 @@ $colors: (
   --#{$namespace}-dropdown-item-hover-bg: var(--#{$namespace}-fill-color);
 
   // AI 核心组件 (Bubble / Sender)
-  --#{$namespace}-bubble-content-bg: var(--#{$namespace}-fill-color);
+  --#{$namespace}-bubble-content-bg: #ffffff;
+  --#{$namespace}-bubble-content-color: #111925;
   --#{$namespace}-sender-bg: var(--#{$namespace}-color-white);
   --#{$namespace}-sender-border: var(--#{$namespace}-border-color);
+}
+
+[data-el-ai-theme='dark'] {
+  --#{$namespace}-bg-color: #111827;
+  --#{$namespace}-fill-color: #1f2937;
+  --#{$namespace}-border-color: #4b5563;
+  --#{$namespace}-border-color-light: #374151;
+  --#{$namespace}-border-color-lighter: #374151;
+  --#{$namespace}-header-bg-color: rgba(255, 255, 255, 0.12);
+  --#{$namespace}-content-bg-color: rgb(48, 48, 48);
+  --#{$namespace}-color-border-secondary: #303133;
+  --#{$namespace}-copy-bg-color: rgba(255, 255, 255, 0.12);
+  --#{$namespace}-scrollbar-thumb-bg-color: rgba(183, 184, 186, 0.18);
+
+  --#{$namespace}-text-color: #f3f4f6;
+  --#{$namespace}-text-color-primary: #f3f4f6;
+  --#{$namespace}-text-color-regular: #e5e7eb;
+  --#{$namespace}-text-color-secondary: #9ca3af;
+  --#{$namespace}-text-color-light: #6b7280;
+
+  // 主色在暗色模式下单独提升亮度，按钮变化更明显
+  --#{$namespace}-color-primary: #60a5fa;
+  --#{$namespace}-color-primary-light-5: #93c5fd;
+  --#{$namespace}-color-primary-light-6: #bfdbfe;
+  --#{$namespace}-color-primary-light-8: #dbeafe;
+  --#{$namespace}-color-primary-light-9: #eff6ff;
+  --#{$namespace}-color-primary-dark-2: #3b82f6;
+
+  --#{$namespace}-button-bg-color: #1f2937;
+  --#{$namespace}-button-border-color: #4b5563;
+  --#{$namespace}-button-text-color: #e5e7eb;
+  --#{$namespace}-button-hover-bg-color: #374151;
+  --#{$namespace}-button-hover-border-color: #60a5fa;
+  --#{$namespace}-button-hover-text-color: #bfdbfe;
+  --#{$namespace}-button-active-bg-color: #111827;
+  --#{$namespace}-button-active-border-color: #60a5fa;
+  --#{$namespace}-button-active-text-color: #dbeafe;
+
+  --#{$namespace}-button-primary-bg-color: #60a5fa;
+  --#{$namespace}-button-primary-border-color: #60a5fa;
+  --#{$namespace}-button-primary-hover-bg-color: #93c5fd;
+  --#{$namespace}-button-primary-hover-border-color: #93c5fd;
+  --#{$namespace}-button-primary-active-bg-color: #3b82f6;
+  --#{$namespace}-button-primary-active-border-color: #3b82f6;
+
+  --#{$namespace}-button-success-bg-color: #22c55e;
+  --#{$namespace}-button-success-border-color: #22c55e;
+  --#{$namespace}-button-success-hover-bg-color: #4ade80;
+  --#{$namespace}-button-success-hover-border-color: #4ade80;
+  --#{$namespace}-button-success-active-bg-color: #16a34a;
+  --#{$namespace}-button-success-active-border-color: #16a34a;
+
+  --#{$namespace}-button-warning-bg-color: #f59e0b;
+  --#{$namespace}-button-warning-border-color: #f59e0b;
+  --#{$namespace}-button-warning-hover-bg-color: #fbbf24;
+  --#{$namespace}-button-warning-hover-border-color: #fbbf24;
+  --#{$namespace}-button-warning-active-bg-color: #d97706;
+  --#{$namespace}-button-warning-active-border-color: #d97706;
+
+  --#{$namespace}-button-danger-bg-color: #ef4444;
+  --#{$namespace}-button-danger-border-color: #ef4444;
+  --#{$namespace}-button-danger-hover-bg-color: #f87171;
+  --#{$namespace}-button-danger-hover-border-color: #f87171;
+  --#{$namespace}-button-danger-active-bg-color: #dc2626;
+  --#{$namespace}-button-danger-active-border-color: #dc2626;
+
+  --#{$namespace}-button-info-bg-color: #64748b;
+  --#{$namespace}-button-info-border-color: #64748b;
+  --#{$namespace}-button-info-hover-bg-color: #94a3b8;
+  --#{$namespace}-button-info-hover-border-color: #94a3b8;
+  --#{$namespace}-button-info-active-bg-color: #475569;
+  --#{$namespace}-button-info-active-border-color: #475569;
+
+  // CodeHighlight token colors (dark)
+  --#{$namespace}-code-token-text: #e6edf3;
+  --#{$namespace}-code-token-comment: #8b949e;
+  --#{$namespace}-code-token-keyword: #ff7b72;
+  --#{$namespace}-code-token-string: #a5d6ff;
+  --#{$namespace}-code-token-number: #79c0ff;
+  --#{$namespace}-code-token-title: #d2a8ff;
+  --#{$namespace}-code-token-attr: #a5d6ff;
+  --#{$namespace}-code-token-type: #ffa657;
+  --#{$namespace}-code-token-built-in: #79c0ff;
+
+  --#{$namespace}-bubble-content-bg: #1f2937;
+  --#{$namespace}-bubble-content-color: #e5e7eb;
 }

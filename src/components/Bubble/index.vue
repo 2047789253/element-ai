@@ -1,5 +1,5 @@
 <template>
-  <div :class="[ns.b(), ns.m(placement)]">
+  <div :class="[ns.b(), ns.m(placement), ns.m(`shape-${shape}`)]" :style="customStyle">
     <div :class="ns.e('avatar')">
       <slot name="avatar">
         <template v-if="typeof avatar === 'string'">
@@ -19,7 +19,7 @@
 
       <div :class="ns.e('content')">
         <slot>
-          <ElAMarkdown :content="content" />
+          <ElAMarkdown v-if="content" :content="content" />
         </slot>
 
         <div v-if="loading" :class="ns.e('loading')">
@@ -41,6 +41,7 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useNamespace } from '../../hooks'
 import { bubbleProps } from './props'
 import ElAMarkdown from '../Markdown/index.vue'
@@ -49,6 +50,19 @@ defineOptions({
   name: 'ElABubble',
 })
 
-defineProps(bubbleProps)
+const props = defineProps(bubbleProps)
 const ns = useNamespace('bubble')
+
+// 核心逻辑：将 Props 转化为动态 CSS 变量
+const customStyle = computed(() => {
+  const styles: Record<string, string> = {}
+  if (props.background) {
+    // 例如：生成 --ela-bubble-bg-color: #ff0000
+    styles[`--${ns.namespace.value}-bubble-bg-color`] = props.background
+  }
+  if (props.textColor) {
+    styles[`--${ns.namespace.value}-bubble-text-color`] = props.textColor
+  }
+  return styles
+})
 </script>

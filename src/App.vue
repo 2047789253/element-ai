@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, type Ref } from 'vue'
-// import Button from './components/Button/Button.vue'
+import Button from './components/Button/Button.vue'
 // import Icon from './components/Icon/Icon.vue'
-// import Switch from './components/Switch/Switch.vue'
+import Switch from './components/Switch/Switch.vue'
 // import Tooltip from './components/Tooltip/Tooltip.vue'
 // import Dropdown from './components/Dropdown/Dropdown.vue'
 // import { createMessage } from './components/Message/method'
@@ -11,11 +11,76 @@ import Conversations from './components/Conversations/index.vue'
 import BubbleList from './components/BubbleList/index.vue'
 import Sender from './components/Sender/index.vue'
 import Markdown from './components/Markdown/index.vue'
+import Bubble from './components/Bubble/index.vue'
+import CodeHighlight from './components/CodeHighlight/index.vue'
 
 // const switchValue = ref(false)
 const inputText = ref('')
 const bubbleListRef = ref<InstanceType<typeof BubbleList> | null>(null)
-const markdownTheme = ref<'light' | 'dark'>('light')
+const uiTheme = ref<'light' | 'dark'>('light')
+const bubblePlacement = ref<'start' | 'end'>('start')
+const bubbleShape = ref<'round' | 'square'>('round')
+const bubbleBgColor = ref('#ffffff')
+const bubbleTextColor = ref('#111925')
+const bubbleUseCustomColors = ref(false)
+const bubbleLoading = ref(false)
+const bubbleUseAvatarSlot = ref(true)
+const bubbleUseHeaderSlot = ref(false)
+const bubbleUseDefaultSlot = ref(false)
+const bubbleUseFooterSlot = ref(false)
+const bubbleUseActionsSlot = ref(true)
+const bubbleAvatarUrl = ref('https://avatars.githubusercontent.com/u/9919?s=64&v=4')
+const bubbleHeaderText = ref('Copilot 助手')
+const bubbleFooterText = ref('通过 props 注入样式变量')
+const codeExpanded = ref(true)
+
+const codeBasicContent = [
+  'interface MessageItem {',
+  '  id: string | number',
+  "  role: 'user' | 'assistant'",
+  '  content: string',
+  '  typing?: boolean',
+  '}',
+].join('\n')
+
+const codeLineNumbersContent = [
+  'function getRandomInt(min: number, max: number): number {',
+  '  const start = Math.ceil(min)',
+  '  const end = Math.floor(max)',
+  '  return Math.floor(Math.random() * (end - start + 1)) + start',
+  '}',
+  '',
+  'export function pickOne<T>(list: T[]): T | undefined {',
+  '  if (!list.length) return undefined',
+  '  return list[getRandomInt(0, list.length - 1)]',
+  '}',
+].join('\n')
+
+const codeSqlContent = [
+  'SELECT id, name, status',
+  'FROM users',
+  "WHERE status = 'active'",
+  'ORDER BY created_at DESC',
+].join('\n')
+
+const codeUnknownContent = [
+  'const greet = (name) => `hello ${name}`',
+  'console.log(greet("element-ai"))',
+].join('\n')
+
+const bubbleMarkdownContent = [
+  '### Bubble 自定义内容',
+  '',
+  '- 通过 `placement` 控制左右布局',
+  '- 通过 `shape` 控制圆润/方正风格',
+  '- 通过 `background` 与 `textColor` 注入 CSS 变量',
+  '',
+  '```ts',
+  "type BubbleShape = 'round' | 'square'",
+  '```',
+].join('\n')
+
+const bubbleContentInput = ref(bubbleMarkdownContent)
 
 const markdownDemoContent = [
   '# Markdown 新能力总览',
@@ -147,14 +212,15 @@ const handleSend = () => {
 </script>
 
 <template>
-  <div class="container">
-    <header>
-      <h1>Element AI Vue 组件库</h1>
-    </header>
+  <div class="app-shell" :data-el-ai-theme="uiTheme">
+    <div class="container">
+      <header>
+        <h1>Element AI Vue 组件库</h1>
+      </header>
 
-    <main>
-      <!-- 基础组件区 -->
-      <!-- <section class="demo-section">
+      <main>
+        <!-- 基础组件区 -->
+        <!-- <section class="demo-section">
         <h2>基础 UI 组件</h2>
 
         <div class="demo-block">
@@ -194,105 +260,434 @@ const handleSend = () => {
         </div>
       </section> -->
 
-      <section class="demo-section markdown-showcase">
-        <h2>Markdown 新能力演示</h2>
-        <p class="subtitle">
-          展示点：GFM 排版、KaTeX 公式、代码块分段渲染，以及通过 <code>#code</code>
-          插槽接管代码区 UI。
-        </p>
+        <section class="demo-section">
+          <h2>全局主题切换（Button + Markdown）</h2>
+          <p class="subtitle">
+            useNamespace 负责动态 BEM 类名，主题切换由 CSS 变量驱动。切换
+            <code>data-el-ai-theme</code> 后，按钮会同步切换。
+          </p>
 
-        <div class="markdown-toolbar">
-          <button
-            class="theme-btn"
-            :class="{ 'is-active': markdownTheme === 'light' }"
-            type="button"
-            @click="markdownTheme = 'light'"
-          >
-            浅色主题
-          </button>
-          <button
-            class="theme-btn"
-            :class="{ 'is-active': markdownTheme === 'dark' }"
-            type="button"
-            @click="markdownTheme = 'dark'"
-          >
-            深色主题
-          </button>
-        </div>
-
-        <div class="markdown-grid">
-          <div class="markdown-panel">
-            <h3>默认渲染（内置高亮）</h3>
-            <Markdown :content="markdownDemoContent" :theme="markdownTheme" />
+          <div class="theme-switch-row">
+            <Switch
+              v-model="uiTheme"
+              size="large"
+              active-value="dark"
+              inactive-value="light"
+              active-text="Dark"
+              inactive-text="Light"
+            />
+            <span class="theme-switch-current">当前主题：{{ uiTheme }}</span>
           </div>
 
-          <div class="markdown-panel">
-            <h3>自定义代码块插槽</h3>
-            <Markdown :content="markdownCustomSlotContent" :theme="markdownTheme">
-              <template #code="{ content, language }">
-                <div class="custom-code-block">
-                  <div class="custom-code-title">自定义代码渲染 · {{ language || 'text' }}</div>
-                  <pre><code>{{ content }}</code></pre>
-                </div>
-              </template>
-            </Markdown>
+          <div class="demo-block theme-button-preview">
+            <Button>Default</Button>
+            <Button type="primary">Primary</Button>
+            <Button type="success">Success</Button>
+            <Button type="warning">Warning</Button>
+            <Button type="danger">Danger</Button>
+            <Button plain type="primary">Plain</Button>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <!-- AI 场景组件区 -->
-      <section class="demo-section ai-section">
-        <h2>AI 聊天场景组件</h2>
-        <p class="subtitle">这些组件基于库内 AI 业务场景定制，用于快速构建大模型对话交互界面。</p>
-        <div class="feature-list">
-          <span class="feature-item">✨ BubbleList：聊天消息列表</span>
-          <span class="feature-item">📝 Markdown 支持</span>
-          <span class="feature-item">⌨️ 打字机效果</span>
-          <span class="feature-item">🎯 智能滚动</span>
-        </div>
+        <section class="demo-section markdown-showcase">
+          <h2>Markdown 新能力演示</h2>
+          <p class="subtitle">
+            展示点：GFM 排版、KaTeX 公式、代码块分段渲染，以及通过 <code>#code</code> 插槽接管代码区
+            UI。当前跟随全局主题：{{ uiTheme }}。
+          </p>
 
-        <div class="chat-container">
-          <div class="chat-sidebar">
-            <Conversations theme="light" :hasMore="false" />
-          </div>
+          <div class="markdown-grid">
+            <div class="markdown-panel">
+              <h3>默认渲染（内置高亮）</h3>
+              <Markdown :content="markdownDemoContent" :theme="uiTheme" />
+            </div>
 
-          <div class="chat-main">
-            <BubbleList ref="bubbleListRef" :data="messages" class="message-list" />
-
-            <div class="chat-sender">
-              <Sender
-                v-model="inputText"
-                placeholder="请输入你想问的问题..."
-                @submit="handleSend"
-              />
+            <div class="markdown-panel">
+              <h3>自定义代码块插槽</h3>
+              <Markdown :content="markdownCustomSlotContent" :theme="uiTheme">
+                <template #code="{ content, language }">
+                  <div class="custom-code-block">
+                    <div class="custom-code-title">自定义代码渲染 · {{ language || 'text' }}</div>
+                    <pre><code>{{ content }}</code></pre>
+                  </div>
+                </template>
+              </Markdown>
             </div>
           </div>
-        </div>
-      </section>
-    </main>
+        </section>
+
+        <section class="demo-section code-highlight-showcase">
+          <h2>CodeHighlight 组件演示</h2>
+          <p class="subtitle">
+            展示点：语言全称映射、行号、自动换行、折叠控制、自定义头部插槽与自动识别语言。
+          </p>
+
+          <div class="code-highlight-grid">
+            <div class="code-highlight-panel">
+              <h3>基础高亮</h3>
+              <CodeHighlight :content="codeBasicContent" language="typescript" />
+            </div>
+
+            <div class="code-highlight-panel">
+              <h3>行号 + 自动换行 + 最大高度</h3>
+              <CodeHighlight
+                :content="codeLineNumbersContent"
+                language="typescript"
+                show-line-numbers
+                wrap-lines
+                :max-height="220"
+              />
+            </div>
+
+            <div class="code-highlight-panel">
+              <h3>折叠与受控展开</h3>
+              <div class="code-toolbar">
+                <button class="control-btn" type="button" @click="codeExpanded = !codeExpanded">
+                  {{ codeExpanded ? '收起代码' : '展开代码' }}
+                </button>
+              </div>
+              <CodeHighlight
+                :content="codeLineNumbersContent"
+                lang="ts"
+                collapsible
+                :expanded="codeExpanded"
+                copy-text="复制片段"
+                copied-text="复制成功"
+                @update:expanded="(value) => (codeExpanded = value)"
+              />
+            </div>
+
+            <div class="code-highlight-panel">
+              <h3>自定义头部与标签映射</h3>
+              <CodeHighlight
+                :content="codeSqlContent"
+                language="sql"
+                background="#0f172a"
+                header-background="#111827"
+                text-color="#d1d5db"
+                :radius="12"
+                :language-label-map="{ sql: 'PostgreSQL' }"
+              >
+                <template #header="{ displayLanguage, isCopied, onCopy }">
+                  <div class="custom-header">
+                    <strong>{{ displayLanguage }}</strong>
+                    <button class="custom-header-btn" type="button" @click="onCopy">
+                      {{ isCopied ? '已复制' : '复制 SQL' }}
+                    </button>
+                  </div>
+                </template>
+              </CodeHighlight>
+            </div>
+
+            <div class="code-highlight-panel">
+              <h3>自动识别语言</h3>
+              <CodeHighlight :content="codeUnknownContent" auto-detect-language lang="text" />
+            </div>
+          </div>
+        </section>
+
+        <section class="demo-section bubble-showcase">
+          <h2>Bubble 自定义演示</h2>
+          <p class="subtitle">
+            覆盖当前 Bubble
+            全部自定义能力：placement、shape、content、avatar、header、footer、loading、
+            background、textColor，以及 avatar/header/default/footer/actions 插槽。
+          </p>
+
+          <div class="bubble-controls">
+            <span class="control-label">方向</span>
+            <button
+              class="control-btn"
+              :class="{ 'is-active': bubblePlacement === 'start' }"
+              type="button"
+              @click="bubblePlacement = 'start'"
+            >
+              start
+            </button>
+            <button
+              class="control-btn"
+              :class="{ 'is-active': bubblePlacement === 'end' }"
+              type="button"
+              @click="bubblePlacement = 'end'"
+            >
+              end
+            </button>
+
+            <span class="control-label">形状</span>
+            <button
+              class="control-btn"
+              :class="{ 'is-active': bubbleShape === 'round' }"
+              type="button"
+              @click="bubbleShape = 'round'"
+            >
+              round
+            </button>
+            <button
+              class="control-btn"
+              :class="{ 'is-active': bubbleShape === 'square' }"
+              type="button"
+              @click="bubbleShape = 'square'"
+            >
+              square
+            </button>
+
+            <span class="control-label">颜色来源</span>
+            <button
+              class="control-btn"
+              :class="{ 'is-active': !bubbleUseCustomColors }"
+              type="button"
+              @click="bubbleUseCustomColors = false"
+            >
+              主题默认
+            </button>
+            <button
+              class="control-btn"
+              :class="{ 'is-active': bubbleUseCustomColors }"
+              type="button"
+              @click="bubbleUseCustomColors = true"
+            >
+              自定义覆盖
+            </button>
+
+            <label class="color-picker">
+              背景
+              <input v-model="bubbleBgColor" type="color" :disabled="!bubbleUseCustomColors" />
+            </label>
+            <label class="color-picker">
+              字色
+              <input v-model="bubbleTextColor" type="color" :disabled="!bubbleUseCustomColors" />
+            </label>
+
+            <span class="control-label">加载</span>
+            <button
+              class="control-btn"
+              :class="{ 'is-active': bubbleLoading }"
+              type="button"
+              @click="bubbleLoading = true"
+            >
+              true
+            </button>
+            <button
+              class="control-btn"
+              :class="{ 'is-active': !bubbleLoading }"
+              type="button"
+              @click="bubbleLoading = false"
+            >
+              false
+            </button>
+
+            <span class="control-label">头像来源</span>
+            <button
+              class="control-btn"
+              :class="{ 'is-active': bubbleUseAvatarSlot }"
+              type="button"
+              @click="bubbleUseAvatarSlot = true"
+            >
+              avatar 插槽
+            </button>
+            <button
+              class="control-btn"
+              :class="{ 'is-active': !bubbleUseAvatarSlot }"
+              type="button"
+              @click="bubbleUseAvatarSlot = false"
+            >
+              avatar 属性
+            </button>
+
+            <span class="control-label">插槽开关</span>
+            <button
+              class="control-btn"
+              :class="{ 'is-active': bubbleUseHeaderSlot }"
+              type="button"
+              @click="bubbleUseHeaderSlot = !bubbleUseHeaderSlot"
+            >
+              header
+            </button>
+            <button
+              class="control-btn"
+              :class="{ 'is-active': bubbleUseDefaultSlot }"
+              type="button"
+              @click="bubbleUseDefaultSlot = !bubbleUseDefaultSlot"
+            >
+              default
+            </button>
+            <button
+              class="control-btn"
+              :class="{ 'is-active': bubbleUseFooterSlot }"
+              type="button"
+              @click="bubbleUseFooterSlot = !bubbleUseFooterSlot"
+            >
+              footer
+            </button>
+            <button
+              class="control-btn"
+              :class="{ 'is-active': bubbleUseActionsSlot }"
+              type="button"
+              @click="bubbleUseActionsSlot = !bubbleUseActionsSlot"
+            >
+              actions
+            </button>
+          </div>
+
+          <div class="bubble-input-grid">
+            <label class="bubble-input-item">
+              <span>header 属性</span>
+              <input v-model="bubbleHeaderText" type="text" placeholder="输入 header 文本" />
+            </label>
+
+            <label class="bubble-input-item">
+              <span>footer 属性</span>
+              <input v-model="bubbleFooterText" type="text" placeholder="输入 footer 文本" />
+            </label>
+
+            <label class="bubble-input-item">
+              <span>avatar 属性（URL）</span>
+              <input
+                v-model="bubbleAvatarUrl"
+                type="text"
+                placeholder="https://example.com/avatar.png"
+              />
+            </label>
+
+            <label class="bubble-input-item bubble-input-item--full">
+              <span>content 属性（支持 Markdown）</span>
+              <textarea v-model="bubbleContentInput" rows="5"></textarea>
+            </label>
+          </div>
+
+          <div class="bubble-demo-card">
+            <Bubble
+              :placement="bubblePlacement"
+              :shape="bubbleShape"
+              :background="bubbleUseCustomColors ? bubbleBgColor : ''"
+              :text-color="bubbleUseCustomColors ? bubbleTextColor : ''"
+              :header="bubbleHeaderText"
+              :footer="bubbleFooterText"
+              :content="bubbleContentInput"
+              :loading="bubbleLoading"
+              :avatar="bubbleUseAvatarSlot ? '' : bubbleAvatarUrl"
+            >
+              <template v-if="bubbleUseAvatarSlot" #avatar>
+                <div class="bubble-avatar">AI</div>
+              </template>
+
+              <template v-if="bubbleUseHeaderSlot" #header>
+                <strong>🤖 {{ bubbleHeaderText }}（header 插槽）</strong>
+              </template>
+
+              <template v-if="bubbleUseDefaultSlot" #default>
+                <div class="bubble-slot-content">
+                  <p><strong>default 插槽已启用：</strong>当前 content 属性已被覆盖。</p>
+                  <p>placement = {{ bubblePlacement }}，shape = {{ bubbleShape }}。</p>
+                </div>
+              </template>
+
+              <template v-if="bubbleUseFooterSlot" #footer>
+                <span>🕒 {{ bubbleFooterText }}（footer 插槽）</span>
+              </template>
+
+              <template v-if="bubbleUseActionsSlot" #actions>
+                <button class="bubble-action-btn" type="button">👍</button>
+                <button class="bubble-action-btn" type="button">复制</button>
+              </template>
+            </Bubble>
+
+            <Bubble
+              placement="end"
+              shape="square"
+              background="#ecfdf3"
+              text-color="#065f46"
+              :avatar="bubbleAvatarUrl"
+              header="你 · avatar 属性示例"
+              footer="该条消息仅使用 Props（无 avatar 插槽）"
+              content="这个示例展示 avatar / header / footer / content 都可以直接通过属性自定义。"
+            />
+
+            <Bubble
+              header="系统状态"
+              footer="loading=true"
+              content="正在生成回答，请稍候..."
+              :loading="true"
+            />
+          </div>
+        </section>
+
+        <!-- AI 场景组件区 -->
+        <section class="demo-section ai-section">
+          <h2>AI 聊天场景组件</h2>
+          <p class="subtitle">这些组件基于库内 AI 业务场景定制，用于快速构建大模型对话交互界面。</p>
+          <div class="feature-list">
+            <span class="feature-item">✨ BubbleList：聊天消息列表</span>
+            <span class="feature-item">📝 Markdown 支持</span>
+            <span class="feature-item">⌨️ 打字机效果</span>
+            <span class="feature-item">🎯 智能滚动</span>
+          </div>
+
+          <div class="chat-container">
+            <div class="chat-sidebar">
+              <Conversations :theme="uiTheme" :hasMore="false" />
+            </div>
+
+            <div class="chat-main">
+              <BubbleList ref="bubbleListRef" :data="messages" class="message-list" />
+
+              <div class="chat-sender">
+                <Sender
+                  v-model="inputText"
+                  placeholder="请输入你想问的问题..."
+                  @submit="handleSend"
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
   </div>
 </template>
 
 <style>
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
+.app-shell {
+  min-height: 100vh;
+  --demo-code-bg: #f6f8fa;
+  --demo-code-border: #d0d7de;
+  --demo-code-title-bg: #eef2f7;
+  --demo-code-title-text: #57606a;
+  --demo-code-text: #1f2328;
+  color: var(--el-ai-text-color);
+  background: var(--el-ai-bg-color);
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease;
   font-family:
     system-ui,
     -apple-system,
     sans-serif;
 }
 
+.app-shell[data-el-ai-theme='dark'] {
+  --demo-code-bg: #0f172a;
+  --demo-code-border: #2f3f60;
+  --demo-code-title-bg: #1e293b;
+  --demo-code-title-text: #dbeafe;
+  --demo-code-text: #e2e8f0;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
 header {
   padding-bottom: 20px;
-  border-bottom: 1px solid #eaecef;
+  border-bottom: 1px solid var(--el-ai-border-color-light);
   margin-bottom: 30px;
 }
 
 header h1 {
   margin: 0;
-  color: #2c3e50;
+  color: var(--el-ai-text-color);
 }
 
 .demo-section {
@@ -302,13 +697,13 @@ header h1 {
 .demo-section h2 {
   font-size: 1.5rem;
   margin-bottom: 10px;
-  color: #2c3e50;
-  border-bottom: 2px solid #f0f2f4;
+  color: var(--el-ai-text-color);
+  border-bottom: 2px solid var(--el-ai-border-color-lighter);
   padding-bottom: 10px;
 }
 
 .subtitle {
-  color: #909399;
+  color: var(--el-ai-text-color-secondary);
   font-size: 0.9rem;
   margin-bottom: 20px;
 }
@@ -322,10 +717,28 @@ header h1 {
 
 .feature-item {
   padding: 6px 12px;
-  background: #f0f2f4;
+  background: var(--el-ai-fill-color);
   border-radius: 4px;
   font-size: 0.9rem;
-  color: #606266;
+  color: var(--el-ai-text-color-regular);
+}
+
+.theme-button-preview {
+  border-color: var(--el-ai-border-color);
+  background: var(--el-ai-fill-color);
+}
+
+.theme-switch-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.theme-switch-current {
+  font-size: 13px;
+  color: var(--el-ai-text-color-secondary);
+  text-transform: capitalize;
 }
 
 .markdown-toolbar {
@@ -362,16 +775,16 @@ header h1 {
 }
 
 .markdown-panel {
-  border: 1px solid #ebeef5;
+  border: 1px solid var(--el-ai-border-color-light);
   border-radius: 10px;
   padding: 16px;
-  background: #fff;
+  background: var(--el-ai-bg-color);
 }
 
 .markdown-panel h3 {
   margin: 0 0 14px;
   font-size: 1rem;
-  color: #303133;
+  color: var(--el-ai-text-color);
 }
 
 .markdown-panel .el-ai-markdown__markdown-body {
@@ -382,13 +795,13 @@ header h1 {
 .custom-code-block {
   border-radius: 8px;
   overflow: hidden;
-  border: 1px solid #2f3f60;
-  background: #0f172a;
+  border: 1px solid var(--demo-code-border);
+  background: var(--demo-code-bg);
 }
 
 .custom-code-title {
-  background: #1e293b;
-  color: #dbeafe;
+  background: var(--demo-code-title-bg);
+  color: var(--demo-code-title-text);
   font-size: 12px;
   padding: 8px 12px;
 }
@@ -397,26 +810,225 @@ header h1 {
   margin: 0;
   padding: 12px;
   overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--el-ai-scrollbar-thumb-bg-color) transparent;
+}
+
+.custom-code-block pre::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-code-block pre::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-code-block pre::-webkit-scrollbar-thumb {
+  border-radius: 6px;
+  background: var(--el-ai-scrollbar-thumb-bg-color);
 }
 
 .custom-code-block code {
-  color: #e2e8f0;
+  color: var(--demo-code-text);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.code-highlight-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.code-highlight-panel {
+  border: 1px solid var(--el-ai-border-color-light);
+  border-radius: 10px;
+  padding: 16px;
+  background: var(--el-ai-bg-color);
+}
+
+.code-highlight-panel h3 {
+  margin: 0 0 14px;
+  font-size: 1rem;
+  color: var(--el-ai-text-color);
+}
+
+.code-toolbar {
+  margin-bottom: 12px;
+}
+
+.custom-header {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.custom-header-btn {
+  border: 1px solid #374151;
+  background: #111827;
+  color: #f9fafb;
+  border-radius: 6px;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+.custom-header-btn:hover {
+  border-color: #60a5fa;
+  color: #bfdbfe;
+}
+
+.bubble-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.control-label {
+  font-size: 12px;
+  color: #909399;
+  margin-right: 2px;
+}
+
+.control-btn {
+  border: 1px solid var(--el-ai-border-color);
+  background: var(--el-ai-bg-color);
+  color: var(--el-ai-text-color-regular);
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.control-btn:hover {
+  border-color: #409eff;
+  color: #409eff;
+}
+
+.control-btn.is-active {
+  border-color: #409eff;
+  background: #ecf5ff;
+  color: #409eff;
+}
+
+.color-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--el-ai-text-color-regular);
+}
+
+.color-picker input {
+  width: 26px;
+  height: 26px;
+  border: none;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.bubble-demo-card {
+  border: 1px solid var(--el-ai-border-color-light);
+  border-radius: 10px;
+  padding: 16px;
+  background: var(--el-ai-fill-color);
+}
+
+.bubble-input-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.bubble-input-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bubble-input-item--full {
+  grid-column: 1 / -1;
+}
+
+.bubble-input-item span {
+  font-size: 12px;
+  color: var(--el-ai-text-color-secondary);
+}
+
+.bubble-input-item input,
+.bubble-input-item textarea {
+  border: 1px solid var(--el-ai-border-color);
+  background: var(--el-ai-bg-color);
+  color: var(--el-ai-text-color-regular);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 12px;
+}
+
+.bubble-input-item textarea {
+  line-height: 1.5;
+  resize: vertical;
+  min-height: 90px;
+}
+
+.bubble-slot-content p {
+  margin: 0;
+}
+
+.bubble-slot-content p + p {
+  margin-top: 6px;
+}
+
+.bubble-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #1d4ed8;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.bubble-avatar-user {
+  background: #059669;
+}
+
+.bubble-action-btn {
+  border: 1px solid var(--el-ai-border-color);
+  background: var(--el-ai-bg-color);
+  color: var(--el-ai-text-color-regular);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  margin-left: 8px;
+}
+
+.bubble-action-btn:hover {
+  border-color: #409eff;
+  color: #409eff;
 }
 
 .demo-block {
   margin-bottom: 20px;
   padding: 20px;
-  border: 1px solid #ebeef5;
+  border: 1px solid var(--el-ai-border-color-light);
   border-radius: 8px;
-  background: #fafafa;
+  background: var(--el-ai-fill-color);
 }
 
 .demo-block h3 {
   margin-top: 0;
   margin-bottom: 15px;
   font-size: 1rem;
-  color: #606266;
+  color: var(--el-ai-text-color-regular);
 }
 
 .gap {
@@ -432,17 +1044,17 @@ header h1 {
 .ai-section .chat-container {
   display: flex;
   height: 74vh;
-  border: 1px solid #dcdfe6;
+  border: 1px solid var(--el-ai-border-color);
   border-radius: 8px;
   overflow: hidden;
-  background: #fff;
+  background: var(--el-ai-bg-color);
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
 }
 
 .chat-sidebar {
   width: 260px;
-  border-right: 1px solid #dcdfe6;
-  background: #f5f7fa;
+  border-right: 1px solid var(--el-ai-border-color);
+  background: var(--el-ai-fill-color);
 }
 
 .chat-main {
@@ -460,12 +1072,20 @@ header h1 {
 
 .chat-sender {
   padding: 15px;
-  border-top: 1px solid #dcdfe6;
-  background: #fff;
+  border-top: 1px solid var(--el-ai-border-color);
+  background: var(--el-ai-bg-color);
 }
 
 @media (max-width: 992px) {
   .markdown-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .code-highlight-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .bubble-input-grid {
     grid-template-columns: 1fr;
   }
 }

@@ -4,11 +4,12 @@
       <slot
         v-if="part.type === 'code'"
         name="code"
+        v-bind="props.codeHighlightProps"
         :content="part.content"
         :language="part.language"
         :theme="theme"
       >
-        <CodeHighlight :code="part.content" :lang="part.language">
+        <CodeHighlight v-bind="props.codeHighlightProps" :code="part.content" :lang="part.language">
           <template #header="props">
             <slot name="code-highlight-header" v-bind="props"></slot>
           </template>

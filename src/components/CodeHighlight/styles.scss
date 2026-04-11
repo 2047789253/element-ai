@@ -1,0 +1,238 @@
+@use '../../styles/mixins.scss' as *;
+
+@include b('code-highlight') {
+  // ==========================================
+  // 1. 声明组件级 CSS 变量 (设置默认的暗黑主题风格)
+  // ==========================================
+  --#{$namespace}-code-bg: var(--#{$namespace}-content-bg-color, #282c34);
+  --#{$namespace}-code-header-bg: var(--#{$namespace}-header-bg-color, #21252b);
+  --#{$namespace}-code-text-color: var(--#{$namespace}-text-color-regular, #abb2bf);
+  --#{$namespace}-code-radius: 8px;
+  --#{$namespace}-code-hover-bg: var(--#{$namespace}-copy-bg-color, rgba(255, 255, 255, 0.1));
+  --#{$namespace}-code-max-height: none;
+  --#{$namespace}-code-line-number-color: var(--#{$namespace}-text-color-secondary, #8a93a6);
+  --#{$namespace}-code-font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+
+  // 语法高亮 token 颜色（通过中间变量解析，避免同名自引用导致失效）
+  --#{$namespace}-code-token-text-resolved: var(--#{$namespace}-code-token-text, #1f2328);
+  --#{$namespace}-code-token-comment-resolved: var(--#{$namespace}-code-token-comment, #6e7781);
+  --#{$namespace}-code-token-keyword-resolved: var(--#{$namespace}-code-token-keyword, #cf222e);
+  --#{$namespace}-code-token-string-resolved: var(--#{$namespace}-code-token-string, #0a3069);
+  --#{$namespace}-code-token-number-resolved: var(--#{$namespace}-code-token-number, #0550ae);
+  --#{$namespace}-code-token-title-resolved: var(--#{$namespace}-code-token-title, #8250df);
+  --#{$namespace}-code-token-attr-resolved: var(--#{$namespace}-code-token-attr, #0a3069);
+  --#{$namespace}-code-token-type-resolved: var(--#{$namespace}-code-token-type, #953800);
+  --#{$namespace}-code-token-built-in-resolved: var(--#{$namespace}-code-token-built-in, #0550ae);
+
+  // ==========================================
+  // 2. 容器基础样式
+  // ==========================================
+  border-radius: var(--#{$namespace}-code-radius);
+  overflow: hidden;
+  background-color: var(--#{$namespace}-code-bg);
+  margin: 12px 0; // 适度收紧上下留白
+
+  // ==========================================
+  // 3. 元素样式
+  // ==========================================
+  @include e('header') {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    background-color: var(--#{$namespace}-code-header-bg);
+    color: var(--#{$namespace}-code-text-color);
+    font-size: 14px;
+    border-bottom: 1px solid var(--#{$namespace}-color-border-secondary);
+  }
+
+  @include e('left') {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  @include e('toggle') {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--#{$namespace}-code-text-color);
+    cursor: pointer;
+
+    &:hover {
+      background-color: var(--#{$namespace}-code-hover-bg);
+    }
+
+    &.is-expanded {
+      .#{$namespace}-code-highlight__toggle-icon {
+        transform: rotate(90deg);
+      }
+    }
+  }
+
+  @include e('toggle-icon') {
+    transition: transform 0.2s ease;
+    transform-origin: 50% 50%;
+  }
+
+  @include e('lang') {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    user-select: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  @include e('actions') {
+    display: flex;
+    align-items: center;
+  }
+
+  @include e('copy-btn') {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: transparent;
+    border: none;
+    color: var(--#{$namespace}-code-text-color);
+    cursor: pointer;
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s;
+
+    &:hover {
+      background-color: var(--#{$namespace}-code-hover-bg);
+      color: var(--#{$namespace}-color-white, #ffffff);
+    }
+  }
+
+  @include e('copy-text') {
+    margin-left: 2px;
+  }
+
+  @include e('body') {
+    pre {
+      margin: 0;
+      padding: 10px 14px;
+      // 强制透明，让背景由外层容器 var(--ela-code-bg) 接管
+      background-color: transparent !important;
+      max-height: var(--#{$namespace}-code-max-height);
+      overflow: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--#{$namespace}-scrollbar-thumb-bg-color) transparent;
+      font-size: 14px;
+      line-height: 1.5;
+
+      &::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+
+      &::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      &::-webkit-scrollbar-thumb {
+        border-radius: 6px;
+        background: var(--#{$namespace}-scrollbar-thumb-bg-color);
+      }
+
+      &::-webkit-scrollbar-thumb:hover {
+        background: color-mix(in srgb, var(--#{$namespace}-scrollbar-thumb-bg-color), #ffffff 18%);
+      }
+
+      code {
+        display: block;
+        white-space: pre;
+        counter-reset: code-line;
+        font-family: var(--#{$namespace}-code-font-family);
+
+        &.hljs {
+          color: var(--#{$namespace}-code-token-text-resolved);
+          background: transparent !important;
+        }
+
+        &.hljs .hljs-comment,
+        &.hljs .hljs-quote {
+          color: var(--#{$namespace}-code-token-comment-resolved);
+        }
+
+        &.hljs .hljs-keyword,
+        &.hljs .hljs-selector-tag,
+        &.hljs .hljs-meta,
+        &.hljs .hljs-doctag {
+          color: var(--#{$namespace}-code-token-keyword-resolved);
+        }
+
+        &.hljs .hljs-string,
+        &.hljs .hljs-regexp,
+        &.hljs .hljs-attr,
+        &.hljs .hljs-attribute,
+        &.hljs .hljs-template-tag {
+          color: var(--#{$namespace}-code-token-string-resolved);
+        }
+
+        &.hljs .hljs-number,
+        &.hljs .hljs-literal,
+        &.hljs .hljs-variable,
+        &.hljs .hljs-template-variable {
+          color: var(--#{$namespace}-code-token-number-resolved);
+        }
+
+        &.hljs .hljs-title,
+        &.hljs .hljs-title.class_,
+        &.hljs .hljs-title.function_ {
+          color: var(--#{$namespace}-code-token-title-resolved);
+        }
+
+        &.hljs .hljs-type,
+        &.hljs .hljs-class .hljs-title,
+        &.hljs .hljs-params {
+          color: var(--#{$namespace}-code-token-type-resolved);
+        }
+
+        &.hljs .hljs-built_in,
+        &.hljs .hljs-symbol,
+        &.hljs .hljs-link {
+          color: var(--#{$namespace}-code-token-built-in-resolved);
+        }
+      }
+    }
+
+    &.is-wrap-lines {
+      pre code {
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+    }
+
+    &.is-line-numbers {
+      pre code {
+        .#{$namespace}-code-highlight__line {
+          display: block;
+          position: relative;
+          padding-left: 3.2em;
+          min-height: 1.5em;
+          counter-increment: code-line;
+
+          &::before {
+            content: counter(code-line);
+            position: absolute;
+            left: 0;
+            width: 2.4em;
+            text-align: right;
+            color: var(--#{$namespace}-code-line-number-color);
+            user-select: none;
+          }
+        }
+      }
+    }
+  }
+}

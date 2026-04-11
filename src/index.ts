@@ -10,6 +10,7 @@ import Sender from './components/Sender/index.vue'
 import Conversations from './components/Conversations/index.vue'
 import BubbleList from './components/BubbleList/index.vue'
 import Markdown from './components/Markdown/index.vue'
+import { setTheme, THEME_ATTRIBUTE, type ThemeMode } from './hooks/useTheme'
 
 const components = {
   Button,
@@ -44,7 +45,11 @@ export {
   Conversations,
   BubbleList,
   Markdown,
+  setTheme,
+  THEME_ATTRIBUTE,
 }
+
+export type { ThemeMode }
 
 export default {
   install,

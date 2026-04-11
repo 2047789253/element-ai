@@ -1,5 +1,6 @@
 import type { ExtractPropTypes, PropType } from 'vue'
 import type { MiddlewarePluginItem } from '../../utils/markdown-parse'
+import type { CodeHighlightProps } from '../CodeHighlight/props'
 
 export const markdownProps = {
   theme: {
@@ -13,6 +14,10 @@ export const markdownProps = {
   remarkPlugins: {
     type: Array as PropType<MiddlewarePluginItem[]>,
     default: () => [],
+  },
+  codeHighlightProps: {
+    type: Object as PropType<Partial<CodeHighlightProps>>,
+    default: () => ({}),
   },
 }
 

@@ -1,4 +1,12 @@
+html,
+body,
+#app {
+  width: 100%;
+  min-height: 100%;
+}
+
 body {
+  margin: 0;
   font-family: var(--el-ai-font-family);
   font-weight: 400;
   font-size: var(--el-ai-font-size-base);

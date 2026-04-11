@@ -1,115 +1,298 @@
 <template>
-  <div class="ela-code-block">
-    <div class="ela-code-header">
-      <span class="ela-code-lang">{{ lang }}</span>
+  <div :class="[ns.b(), ns.is('expanded', computedExpanded)]" :style="customStyle">
+    <slot
+      name="header"
+      :content="rawCode"
+      :language="rawLang"
+      :displayLanguage="displayLang"
+      :isCopied="copied"
+      :onCopy="onCopy"
+      :toggleExpanded="toggleExpanded"
+      :expanded="computedExpanded"
+    >
+      <div v-if="props.showHeader" :class="ns.e('header')">
+        <div :class="ns.e('left')">
+          <button
+            v-if="props.collapsible"
+            type="button"
+            :class="[ns.e('toggle'), ns.is('expanded', computedExpanded)]"
+            @click="toggleExpanded"
+          >
+            <span :class="ns.e('toggle-icon')">▸</span>
+          </button>
 
-      <div class="ela-code-actions">
-        <button class="ela-code-copy-btn" @click="handleCopy">
-          <svg
-            v-if="!copied"
-            viewBox="0 0 24 24"
-            width="14"
-            height="14"
-            stroke="currentColor"
-            stroke-width="2"
-            fill="none"
-          >
-            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-          </svg>
-          <svg
-            v-else
-            viewBox="0 0 24 24"
-            width="14"
-            height="14"
-            stroke="#67c23a"
-            stroke-width="2"
-            fill="none"
-          >
-            <polyline points="20 6 9 17 4 12"></polyline>
-          </svg>
-          <span class="btn-text" :style="{ color: copied ? '#67c23a' : '' }">
-            {{ copied ? '已复制' : '复制代码' }}
+          <span :class="ns.e('lang')" @click="props.collapsible ? toggleExpanded() : undefined">
+            {{ displayLang }}
           </span>
-        </button>
+        </div>
+
+        <div :class="ns.e('actions')">
+          <button v-if="props.copyable" type="button" :class="ns.e('copy-btn')" @click="onCopy">
+            <svg
+              v-if="!copied"
+              viewBox="0 0 24 24"
+              width="14"
+              height="14"
+              stroke="currentColor"
+              stroke-width="2"
+              fill="none"
+            >
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+            <svg
+              v-else
+              viewBox="0 0 24 24"
+              width="14"
+              height="14"
+              stroke="var(--ela-color-success, #67c23a)"
+              stroke-width="2"
+              fill="none"
+            >
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span
+              :class="ns.e('copy-text')"
+              :style="{ color: copied ? 'var(--ela-color-success, #67c23a)' : '' }"
+            >
+              {{ copied ? props.copiedText : props.copyText }}
+            </span>
+          </button>
+        </div>
       </div>
-    </div>
-    <div class="ela-code-body">
-      <pre><code class="hljs" :class="'language-' + lang" v-html="highlightedCode"></code></pre>
+    </slot>
+
+    <div
+      v-show="computedExpanded"
+      :class="[
+        ns.e('body'),
+        ns.is('line-numbers', props.showLineNumbers),
+        ns.is('wrap-lines', props.wrapLines),
+      ]"
+    >
+      <pre>
+        <code
+          class="hljs"
+          :class="highlightLang ? 'language-' + highlightLang : ''"
+          v-html="renderedCode"
+        ></code>
+      </pre>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onBeforeUnmount } from 'vue'
 import hljs from 'highlight.js'
-import 'highlight.js/styles/atom-one-dark.css'
+import { useNamespace } from '../../hooks'
+import { codeHighlightProps, type CodeHighlightEmitsType } from './props'
 
-const props = defineProps({
-  code: { type: String, default: '' },
-  lang: { type: String, default: 'text' },
+defineOptions({
+  name: 'ElACodeHighlight',
 })
 
+const props = defineProps(codeHighlightProps)
+const emits = defineEmits<CodeHighlightEmitsType>()
+const ns = useNamespace('code-highlight')
+
 const copied = ref(false)
+const innerExpanded = ref(props.defaultExpanded)
+let copyTimer: ReturnType<typeof setTimeout> | null = null
+
+const LANGUAGE_LABEL_MAP: Record<string, string> = {
+  js: 'JavaScript',
+  javascript: 'JavaScript',
+  jsx: 'JavaScript React',
+  ts: 'TypeScript',
+  typescript: 'TypeScript',
+  tsx: 'TypeScript React',
+  vue: 'Vue',
+  html: 'HTML',
+  css: 'CSS',
+  scss: 'SCSS',
+  less: 'Less',
+  json: 'JSON',
+  yml: 'YAML',
+  yaml: 'YAML',
+  md: 'Markdown',
+  markdown: 'Markdown',
+  shell: 'Shell',
+  sh: 'Shell',
+  bash: 'Bash',
+  ps1: 'PowerShell',
+  powershell: 'PowerShell',
+  py: 'Python',
+  python: 'Python',
+  java: 'Java',
+  kotlin: 'Kotlin',
+  go: 'Go',
+  rust: 'Rust',
+  rs: 'Rust',
+  c: 'C',
+  cpp: 'C++',
+  cs: 'C#',
+  php: 'PHP',
+  ruby: 'Ruby',
+  rb: 'Ruby',
+  swift: 'Swift',
+  sql: 'SQL',
+  xml: 'XML',
+  text: 'Plain Text',
+  txt: 'Plain Text',
+}
+
+const HIGHLIGHT_LANG_ALIAS_MAP: Record<string, string> = {
+  'c++': 'cpp',
+  'c#': 'csharp',
+  shell: 'bash',
+  sh: 'bash',
+  ps1: 'powershell',
+  text: 'plaintext',
+  txt: 'plaintext',
+}
+
+const rawCode = computed(() => props.content ?? props.code ?? '')
+const rawLang = computed(() => (props.language ?? props.lang ?? 'text').trim())
+const normalizedLang = computed(() => rawLang.value.toLowerCase())
+const highlightLang = computed(() => {
+  return HIGHLIGHT_LANG_ALIAS_MAP[normalizedLang.value] || normalizedLang.value
+})
+
+const computedExpanded = computed(() => {
+  return props.expanded === undefined ? innerExpanded.value : props.expanded
+})
+
+const mergedLangLabelMap = computed<Record<string, string>>(() => {
+  return {
+    ...LANGUAGE_LABEL_MAP,
+    ...props.languageLabelMap,
+  }
+})
+
+const displayLang = computed(() => {
+  const lang = rawLang.value || 'text'
+  const normalized = lang.toLowerCase()
+  return mergedLangLabelMap.value[normalized] || lang
+})
+
+const escapeHtml = (text: string) => {
+  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
 
 // 高亮计算
 const highlightedCode = computed(() => {
-  if (props.lang && hljs.getLanguage(props.lang)) {
+  const lang = highlightLang.value
+  const code = rawCode.value
+
+  if (lang && hljs.getLanguage(lang)) {
     try {
-      return hljs.highlight(props.code, { language: props.lang, ignoreIllegals: true }).value
+      return hljs.highlight(code, { language: lang, ignoreIllegals: true }).value
     } catch {}
   }
-  // 简单的 HTML 转义兜底
-  return props.code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+
+  if (props.autoDetectLanguage && code) {
+    try {
+      return hljs.highlightAuto(code).value
+    } catch {}
+  }
+
+  return escapeHtml(code)
 })
 
-// 复制逻辑
-const handleCopy = async () => {
+const renderedCode = computed(() => {
+  if (!props.showLineNumbers) {
+    return highlightedCode.value
+  }
+
+  const lineClass = ns.e('line')
+  return highlightedCode.value
+    .split('\n')
+    .map((line) => `<span class="${lineClass}">${line || ' '}</span>`)
+    .join('\n')
+})
+
+const clearCopyTimer = () => {
+  if (copyTimer) {
+    clearTimeout(copyTimer)
+    copyTimer = null
+  }
+}
+
+const onCopy = async () => {
+  if (!props.copyable) return
+
   try {
-    await navigator.clipboard.writeText(props.code)
+    await navigator.clipboard.writeText(rawCode.value)
     copied.value = true
-    setTimeout(() => {
+    emits('copied', rawCode.value)
+
+    clearCopyTimer()
+    if (props.copyDuration > 0) {
+      copyTimer = setTimeout(() => {
+        copied.value = false
+      }, props.copyDuration)
+    } else {
       copied.value = false
-    }, 2000)
+    }
   } catch (err) {
     console.error('复制失败', err)
   }
 }
+
+const toggleExpanded = () => {
+  if (!props.collapsible) return
+
+  const nextValue = !computedExpanded.value
+  if (props.expanded === undefined) {
+    innerExpanded.value = nextValue
+  }
+  emits('update:expanded', nextValue)
+}
+
+onBeforeUnmount(() => {
+  clearCopyTimer()
+})
+
+// 核心：动态 CSS 变量映射
+const customStyle = computed(() => {
+  const styles: Record<string, string> = {}
+
+  if (props.background) {
+    styles[`--${ns.namespace.value}-code-bg`] = props.background
+  }
+  if (props.headerBackground) {
+    styles[`--${ns.namespace.value}-code-header-bg`] = props.headerBackground
+  }
+  if (props.textColor) {
+    styles[`--${ns.namespace.value}-code-text-color`] = props.textColor
+    // 若未单独传 codeColor，则使用 textColor 作为代码正文基础色
+    if (!props.codeColor) {
+      styles[`--${ns.namespace.value}-code-token-text`] = props.textColor
+    }
+  }
+  if (props.codeColor) {
+    styles[`--${ns.namespace.value}-code-token-text`] = props.codeColor
+  }
+  if (props.codeFontFamily) {
+    styles[`--${ns.namespace.value}-code-font-family`] = props.codeFontFamily
+  }
+  if (props.radius) {
+    styles[`--${ns.namespace.value}-code-radius`] =
+      typeof props.radius === 'number' ? `${props.radius}px` : props.radius
+  }
+  if (props.maxHeight) {
+    styles[`--${ns.namespace.value}-code-max-height`] =
+      typeof props.maxHeight === 'number' ? `${props.maxHeight}px` : props.maxHeight
+  }
+  if (props.lineNumberColor) {
+    styles[`--${ns.namespace.value}-code-line-number-color`] = props.lineNumberColor
+  }
+
+  return styles
+})
+
+defineExpose({
+  onCopy,
+  toggleExpanded,
+})
 </script>
-<style scoped>
-.ela-code-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between; /* 这一行最关键：让两端的元素分别靠左和靠右 */
-  padding: 8px 16px; /* 根据你的组件库整体风格调整间距 */
-  background-color: #282c34; /* 代码块头部的背景色，可根据你的主题调整 */
-  color: rgb(33, 95, 210); /* 语言文字的颜色 */
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
-  font-size: 14px;
-}
-
-.ela-code-actions {
-  display: flex;
-  align-items: center;
-}
-
-.ela-code-copy-btn {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  background: transparent;
-  border: none;
-  color: #abb2bf;
-  cursor: pointer;
-  font-size: 12px;
-  padding: 4px 8px;
-  border-radius: 4px;
-  transition: all 0.2s;
-}
-
-.ela-code-copy-btn:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: #fff;
-}
-</style>

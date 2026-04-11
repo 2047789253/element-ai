@@ -9,6 +9,7 @@
 @use '../components/Message/style.scss' as message;
 @use '../components/Switch/style.scss' as switch-style;
 @use '../components/Bubble/style.scss' as bubble;
+@use '../components/CodeHighlight/styles.scss' as code-highlight;
 @use '../components/Sender/style.scss' as sender;
 @use '../components/Conversations/style.scss' as conversations;
 @use '../components/BubbleList/style.scss' as bubble-list;

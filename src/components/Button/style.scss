@@ -50,18 +50,36 @@
   // 利用 SCSS 循环，一次性生成 5 种基础类型按钮的样式
   @each $type in (primary, success, warning, danger, info) {
     @include m($type) {
-      background-color: var(--#{$namespace}-color-#{$type});
-      border-color: var(--#{$namespace}-color-#{$type});
-      color: white;
+      background-color: var(
+        --#{$namespace}-button-#{$type}-bg-color,
+        var(--#{$namespace}-color-#{$type})
+      );
+      border-color: var(
+        --#{$namespace}-button-#{$type}-border-color,
+        var(--#{$namespace}-color-#{$type})
+      );
+      color: var(--#{$namespace}-button-#{$type}-text-color, var(--#{$namespace}-color-white));
 
       @include hover {
-        background-color: var(--#{$namespace}-color-#{$type}-light-6);
-        border-color: var(--#{$namespace}-color-#{$type}-light-6);
+        background-color: var(
+          --#{$namespace}-button-#{$type}-hover-bg-color,
+          var(--#{$namespace}-color-#{$type}-light-6)
+        );
+        border-color: var(
+          --#{$namespace}-button-#{$type}-hover-border-color,
+          var(--#{$namespace}-color-#{$type}-light-6)
+        );
       }
 
       @include active {
-        background-color: var(--#{$namespace}-color-#{$type}-dark-2);
-        border-color: var(--#{$namespace}-color-#{$type}-dark-2);
+        background-color: var(
+          --#{$namespace}-button-#{$type}-active-bg-color,
+          var(--#{$namespace}-color-#{$type}-dark-2)
+        );
+        border-color: var(
+          --#{$namespace}-button-#{$type}-active-border-color,
+          var(--#{$namespace}-color-#{$type}-dark-2)
+        );
       }
     }
   }
@@ -87,18 +105,36 @@
     // 注意：$B 是当前块名(如 el-ai-button)，$modifier-separator 是修饰符(如 --)
     @each $type in (primary, success, warning, danger, info) {
       &.#{$B}#{$modifier-separator}#{$type} {
-        color: var(--#{$namespace}-color-#{$type});
+        color: var(
+          --#{$namespace}-button-#{$type}-plain-text-color,
+          var(--#{$namespace}-color-#{$type})
+        );
         // 统一使用标准的 light-5 作为边框色
-        border-color: var(--#{$namespace}-color-#{$type}-light-5);
+        border-color: var(
+          --#{$namespace}-button-#{$type}-plain-border-color,
+          var(--#{$namespace}-color-#{$type}-light-5)
+        );
 
         @include hover {
-          background-color: var(--#{$namespace}-color-#{$type}-light-9);
-          border-color: var(--#{$namespace}-color-#{$type}-light-8);
+          background-color: var(
+            --#{$namespace}-button-#{$type}-plain-hover-bg-color,
+            var(--#{$namespace}-color-#{$type}-light-9)
+          );
+          border-color: var(
+            --#{$namespace}-button-#{$type}-plain-hover-border-color,
+            var(--#{$namespace}-color-#{$type}-light-8)
+          );
         }
 
         @include active {
-          background-color: var(--#{$namespace}-color-#{$type}-light-8);
-          border-color: var(--#{$namespace}-color-#{$type});
+          background-color: var(
+            --#{$namespace}-button-#{$type}-plain-active-bg-color,
+            var(--#{$namespace}-color-#{$type}-light-8)
+          );
+          border-color: var(
+            --#{$namespace}-button-#{$type}-plain-active-border-color,
+            var(--#{$namespace}-color-#{$type})
+          );
         }
       }
     }
