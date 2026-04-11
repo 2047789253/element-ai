@@ -84,7 +84,7 @@
   @include m('start') {
     flex-direction: row;
     .#{$B}__content {
-      border-radius: 0 var(--#{$namespace}-bubble-radius, 12px)
+      border-radius: var(--#{$namespace}-bubble-radius, 12px)
         var(--#{$namespace}-bubble-radius, 12px) var(--#{$namespace}-bubble-radius, 12px);
 
       background-color: var(
@@ -106,7 +106,7 @@
     }
 
     .#{$B}__content {
-      border-radius: var(--#{$namespace}-bubble-radius, 12px) 0
+      border-radius: var(--#{$namespace}-bubble-radius, 12px)
         var(--#{$namespace}-bubble-radius, 12px) var(--#{$namespace}-bubble-radius, 12px);
 
       text-align: left;
