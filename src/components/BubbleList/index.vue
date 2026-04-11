@@ -8,7 +8,7 @@ defineOptions({
   name: 'BubbleList',
 })
 
-defineProps({
+const props = defineProps({
   ...bubbleListProps,
 })
 
@@ -19,43 +19,85 @@ const emits = defineEmits<{
 
 const ns = useNamespace('bubble-list')
 const listRef = ref<HTMLElement | null>(null)
+const innerRef = ref<HTMLElement | null>(null)
 const isUserScrolling = ref(false)
+const isNearTop = ref(false)
 let observer: MutationObserver | null = null
+let mutationFrameId: number | null = null
+
+const isAtBottom = (el: HTMLElement) => {
+  const distanceToBottom = el.scrollHeight - el.scrollTop - el.clientHeight
+  return distanceToBottom <= props.bottomThreshold
+}
 
 const handleScroll = () => {
   if (!listRef.value) return
   const { scrollTop, scrollHeight, clientHeight } = listRef.value
 
-  // 1. 防打扰逻辑：距离底部 > 50px 视为用户在往上翻
-  isUserScrolling.value = scrollHeight - scrollTop - clientHeight > 50
+  // 基于阈值判断是否处于底部，避免细微偏差导致自动滚动抖动。
+  const distanceToBottom = scrollHeight - scrollTop - clientHeight
+  isUserScrolling.value = distanceToBottom > props.bottomThreshold
 
-  // 2. 新增：触顶加载逻辑。当滚动条距离顶部小于等于 10px 时触发加载更多
-  if (scrollTop <= 10) {
+  // 仅在“越过顶部阈值”时触发一次，避免连续滚动时重复发请求。
+  const nextNearTop = scrollTop <= props.topLoadThreshold
+  if (nextNearTop && !isNearTop.value) {
     emits('load-more')
   }
+  isNearTop.value = nextNearTop
 }
 
-// 修改：增加 isInit 参数，区分“初始加载”和“持续打字”
-const scrollToBottom = async (force = false, isInit = false) => {
+const scrollToBottom = async (force = false, behavior: ScrollBehavior = 'smooth') => {
   if (isUserScrolling.value && !force) return
   await nextTick()
   if (listRef.value) {
-    // 核心优化：使用原生 scrollTo 精细控制滚动行为
     listRef.value.scrollTo({
       top: listRef.value.scrollHeight,
-      // 如果是组件初次挂载，瞬间到底 ('auto')；否则平滑滚动 ('smooth')
-      behavior: isInit ? 'auto' : 'smooth',
+      behavior,
     })
+    isUserScrolling.value = false
   }
 }
 
-onMounted(() => {
-  // 传入 true, true，代表：强制到底，且是初始加载（瞬间跳跃）
-  scrollToBottom(true, true)
+const scrollToTop = async (behavior: ScrollBehavior = 'smooth') => {
+  await nextTick()
+  if (!listRef.value) return
+  listRef.value.scrollTo({
+    top: 0,
+    behavior,
+  })
+  isUserScrolling.value = true
+}
 
-  if (listRef.value) {
-    observer = new MutationObserver(() => scrollToBottom())
-    observer.observe(listRef.value, {
+const scrollToIndex = async (index: number, behavior: ScrollBehavior = 'smooth') => {
+  await nextTick()
+  if (!listRef.value || !innerRef.value) return
+
+  const targetElement = innerRef.value.children[index] as HTMLElement | undefined
+  if (!targetElement) return
+
+  listRef.value.scrollTo({
+    top: targetElement.offsetTop,
+    behavior,
+  })
+  isUserScrolling.value = !isAtBottom(listRef.value)
+}
+
+const forceScrollToBottom = (behavior: ScrollBehavior = 'smooth') => scrollToBottom(true, behavior)
+
+const scheduleAutoScroll = () => {
+  if (mutationFrameId !== null) return
+  mutationFrameId = window.requestAnimationFrame(() => {
+    mutationFrameId = null
+    scrollToBottom()
+  })
+}
+
+onMounted(() => {
+  forceScrollToBottom('auto')
+
+  if (innerRef.value) {
+    observer = new MutationObserver(scheduleAutoScroll)
+    observer.observe(innerRef.value, {
       childList: true,
       subtree: true,
       characterData: true,
@@ -65,17 +107,22 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   if (observer) observer.disconnect()
+  if (mutationFrameId !== null) {
+    window.cancelAnimationFrame(mutationFrameId)
+    mutationFrameId = null
+  }
 })
 
-// 暴露给父组件的方法也同步更新
 defineExpose({
-  scrollToBottom: () => scrollToBottom(true),
+  scrollToBottom: forceScrollToBottom,
+  scrollToTop,
+  scrollToIndex,
 })
 </script>
 
 <template>
   <div ref="listRef" :class="ns.b()" @scroll="handleScroll">
-    <div :class="ns.e('inner')">
+    <div ref="innerRef" :class="ns.e('inner')">
       <div v-for="item in data" :key="item.id" :class="ns.e('item')">
         <slot name="item" :data="item">
           <Bubble
@@ -102,8 +149,31 @@ defineExpose({
     </div>
 
     <Transition name="fade">
-      <div v-show="isUserScrolling" :class="ns.e('float-btn')" @click="scrollToBottom(true)">
-        <span>↓</span>
+      <div v-show="isUserScrolling" :class="ns.e('float-actions')">
+        <slot
+          name="bottom-action"
+          :scrollToBottom="forceScrollToBottom"
+          :scrollToTop="scrollToTop"
+          :scrollToIndex="scrollToIndex"
+        >
+          <div :class="ns.e('float-btn')" @click="forceScrollToBottom('smooth')">
+            <svg
+              :class="ns.e('float-icon')"
+              viewBox="0 0 16 16"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+            >
+              <path
+                d="M4.5 6.5L8 10L11.5 6.5"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </div>
+        </slot>
       </div>
     </Transition>
   </div>

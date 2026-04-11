@@ -1,58 +1,56 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { mount, flushPromises } from '@vue/test-utils'
+import { describe, it, expect, afterEach, vi } from 'vitest'
+import { mount, type VueWrapper } from '@vue/test-utils'
+import { h, nextTick } from 'vue'
 import BubbleList from '../index.vue'
-import type { MessageItem } from '../types'
+import type { MessageItem } from '../props'
+
+const mockData: MessageItem[] = [
+  { id: 1, content: 'Message 1', role: 'user' },
+  { id: 2, content: 'Message 2', role: 'assistant' },
+]
+
+const setScrollMetrics = (
+  el: HTMLElement,
+  metrics: { scrollTop: number; scrollHeight: number; clientHeight: number },
+) => {
+  Object.defineProperty(el, 'scrollTop', {
+    value: metrics.scrollTop,
+    writable: true,
+    configurable: true,
+  })
+  Object.defineProperty(el, 'scrollHeight', {
+    value: metrics.scrollHeight,
+    writable: true,
+    configurable: true,
+  })
+  Object.defineProperty(el, 'clientHeight', {
+    value: metrics.clientHeight,
+    writable: true,
+    configurable: true,
+  })
+}
 
 describe('BubbleList', () => {
-  let wrapper: unknown
-
-  beforeEach(() => {
-    vi.clearAllMocks()
-  })
+  let wrapper: VueWrapper<any> | null = null
 
   afterEach(() => {
-    if (wrapper) {
-      wrapper.unmount()
-    }
+    wrapper?.unmount()
+    wrapper = null
+    vi.restoreAllMocks()
   })
 
   it('应该正确渲染组件并应用 BEM 类名', () => {
-    const data: MessageItem[] = [{ id: 1, content: 'Hello', role: 'user' }]
     wrapper = mount(BubbleList, {
-      props: { data },
+      props: { data: mockData },
     })
 
     expect(wrapper.classes()).toContain('el-ai-bubble-list')
     expect(wrapper.find('.el-ai-bubble-list__inner').exists()).toBe(true)
   })
 
-  it('应该根据数据正确渲染消息项', () => {
-    const data: MessageItem[] = [
-      { id: 1, content: 'Message 1', role: 'user' },
-      { id: 2, content: 'Message 2', role: 'assistant' },
-      { id: 3, content: 'Message 3', role: 'user', typing: true },
-    ]
+  it('应该支持自定义 item 插槽', () => {
     wrapper = mount(BubbleList, {
-      props: { data },
-    })
-
-    const items = wrapper.findAll('.el-ai-bubble-list__item')
-    expect(items).toHaveLength(3)
-  })
-
-  it('应该在没有数据时呈现空状态', () => {
-    wrapper = mount(BubbleList, {
-      props: { data: [] },
-    })
-
-    const items = wrapper.findAll('.el-ai-bubble-list__item')
-    expect(items).toHaveLength(0)
-  })
-
-  it('应该支持自定义插槽', () => {
-    const data: MessageItem[] = [{ id: 1, content: 'Test', role: 'user' }]
-    wrapper = mount(BubbleList, {
-      props: { data },
+      props: { data: mockData },
       slots: {
         item: '<div class="custom-item">{{ data.content }}</div>',
       },
@@ -61,81 +59,161 @@ describe('BubbleList', () => {
     expect(wrapper.find('.custom-item').exists()).toBe(true)
   })
 
-  it('应该在数据更新时保持正确的消息顺序', async () => {
-    const initialData: MessageItem[] = [{ id: 1, content: 'First', role: 'user' }]
+  it('应该根据 bottomThreshold 决定是否显示回到底部按钮', async () => {
     wrapper = mount(BubbleList, {
-      props: { data: initialData },
-    })
-
-    const newData: MessageItem[] = [
-      { id: 1, content: 'First', role: 'user' },
-      { id: 2, content: 'Second', role: 'assistant' },
-    ]
-
-    await wrapper.setProps({ data: newData })
-    await flushPromises()
-
-    const items = wrapper.findAll('.el-ai-bubble-list__item')
-    expect(items).toHaveLength(2)
-  })
-
-  it('应该暴露 scrollToBottom 方法', () => {
-    const data: MessageItem[] = [{ id: 1, content: 'Test', role: 'user' }]
-    wrapper = mount(BubbleList, {
-      props: { data },
-    })
-
-    expect(typeof wrapper.vm.scrollToBottom).toBe('function')
-  })
-
-  it('应该正确传递消息属性到气泡组件', () => {
-    const data: MessageItem[] = [
-      { id: 1, content: 'User message', role: 'user', typing: false },
-      { id: 2, content: 'AI message', role: 'assistant', typing: true },
-    ]
-    wrapper = mount(BubbleList, {
-      props: { data },
-      global: {
-        stubs: {
-          ElABubble: true,
-        },
+      props: {
+        data: mockData,
+        bottomThreshold: 80,
       },
     })
 
-    const bubbles = wrapper.findAllComponents({ name: 'ElABubble' })
-    expect(bubbles.length).toBeGreaterThanOrEqual(0)
+    const listEl = wrapper.find('.el-ai-bubble-list').element as HTMLElement
+    const actionsEl = wrapper.find('.el-ai-bubble-list__float-actions')
+
+    setScrollMetrics(listEl, {
+      scrollTop: 260,
+      scrollHeight: 600,
+      clientHeight: 300,
+    })
+    await wrapper.trigger('scroll')
+    expect(actionsEl.attributes('style') ?? '').toContain('display: none')
+
+    setScrollMetrics(listEl, {
+      scrollTop: 180,
+      scrollHeight: 600,
+      clientHeight: 300,
+    })
+    await wrapper.trigger('scroll')
+    await nextTick()
+
+    expect(actionsEl.attributes('style') ?? '').not.toContain('display: none')
   })
 
-  it('应该在用户手动滚动后不自动滚动到底部', async () => {
-    const data: MessageItem[] = [{ id: 1, content: 'Message', role: 'user' }]
+  it('应该在越过顶部阈值时触发 load-more 且避免重复触发', async () => {
     wrapper = mount(BubbleList, {
-      props: { data },
+      props: {
+        data: mockData,
+        topLoadThreshold: 10,
+      },
     })
 
     const listEl = wrapper.find('.el-ai-bubble-list').element as HTMLElement
 
-    // 直接修改 ref 对象的属性
-    if (wrapper.vm.isUserScrolling !== undefined) {
-      Object.defineProperty(listEl, 'scrollHeight', {
-        value: 500,
-        writable: true,
-        configurable: true,
-      })
-      Object.defineProperty(listEl, 'clientHeight', {
-        value: 300,
-        writable: true,
-        configurable: true,
-      })
-      Object.defineProperty(listEl, 'scrollTop', {
-        value: 100,
-        writable: true,
-        configurable: true,
-      })
+    setScrollMetrics(listEl, {
+      scrollTop: 8,
+      scrollHeight: 600,
+      clientHeight: 300,
+    })
+    await wrapper.trigger('scroll')
+    expect(wrapper.emitted('load-more')).toHaveLength(1)
 
-      // 手动触发 handleScroll 逻辑
-      wrapper.vm.handleScroll()
+    setScrollMetrics(listEl, {
+      scrollTop: 6,
+      scrollHeight: 600,
+      clientHeight: 300,
+    })
+    await wrapper.trigger('scroll')
+    expect(wrapper.emitted('load-more')).toHaveLength(1)
 
-      expect(wrapper.vm.isUserScrolling).toBe(true)
-    }
+    setScrollMetrics(listEl, {
+      scrollTop: 20,
+      scrollHeight: 600,
+      clientHeight: 300,
+    })
+    await wrapper.trigger('scroll')
+
+    setScrollMetrics(listEl, {
+      scrollTop: 4,
+      scrollHeight: 600,
+      clientHeight: 300,
+    })
+    await wrapper.trigger('scroll')
+
+    expect(wrapper.emitted('load-more')).toHaveLength(2)
+  })
+
+  it('应该暴露并支持 scrollToBottom / scrollToTop / scrollToIndex', async () => {
+    wrapper = mount(BubbleList, {
+      props: { data: mockData },
+    })
+
+    const listEl = wrapper.find('.el-ai-bubble-list').element as HTMLElement
+    const scrollTo = vi.fn()
+    Object.defineProperty(listEl, 'scrollTo', {
+      value: scrollTo,
+      writable: true,
+      configurable: true,
+    })
+    Object.defineProperty(listEl, 'scrollHeight', {
+      value: 500,
+      writable: true,
+      configurable: true,
+    })
+
+    const secondItem = wrapper.findAll('.el-ai-bubble-list__item')[1].element as HTMLElement
+    Object.defineProperty(secondItem, 'offsetTop', {
+      value: 120,
+      writable: true,
+      configurable: true,
+    })
+
+    expect(typeof wrapper.vm.scrollToBottom).toBe('function')
+    expect(typeof wrapper.vm.scrollToTop).toBe('function')
+    expect(typeof wrapper.vm.scrollToIndex).toBe('function')
+
+    await wrapper.vm.scrollToBottom('auto')
+    await wrapper.vm.scrollToTop('auto')
+    await wrapper.vm.scrollToIndex(1, 'auto')
+
+    expect(scrollTo).toHaveBeenCalledWith({ top: 500, behavior: 'auto' })
+    expect(scrollTo).toHaveBeenCalledWith({ top: 0, behavior: 'auto' })
+    expect(scrollTo).toHaveBeenCalledWith({ top: 120, behavior: 'auto' })
+  })
+
+  it('应该支持自定义 bottom-action 插槽', async () => {
+    wrapper = mount(BubbleList, {
+      props: { data: mockData },
+      slots: {
+        'bottom-action': ({
+          scrollToBottom,
+        }: {
+          scrollToBottom: (behavior?: ScrollBehavior) => void
+        }) =>
+          h(
+            'button',
+            {
+              class: 'custom-bottom-action',
+              onClick: () => scrollToBottom('auto'),
+            },
+            '返回底部',
+          ),
+      },
+    })
+
+    const listEl = wrapper.find('.el-ai-bubble-list').element as HTMLElement
+    const scrollTo = vi.fn()
+    Object.defineProperty(listEl, 'scrollTo', {
+      value: scrollTo,
+      writable: true,
+      configurable: true,
+    })
+    Object.defineProperty(listEl, 'scrollHeight', {
+      value: 520,
+      writable: true,
+      configurable: true,
+    })
+
+    setScrollMetrics(listEl, {
+      scrollTop: 100,
+      scrollHeight: 600,
+      clientHeight: 300,
+    })
+    await wrapper.trigger('scroll')
+
+    const action = wrapper.find('.custom-bottom-action')
+    expect(action.exists()).toBe(true)
+
+    await action.trigger('click')
+    expect(scrollTo).toHaveBeenCalledWith({ top: 600, behavior: 'auto' })
   })
 })

@@ -70,13 +70,11 @@
         ns.is('wrap-lines', props.wrapLines),
       ]"
     >
-      <pre>
-        <code
-          class="hljs"
-          :class="highlightLang ? 'language-' + highlightLang : ''"
-          v-html="renderedCode"
-        ></code>
-      </pre>
+      <pre><code
+        class="hljs"
+        :class="highlightLang ? 'language-' + highlightLang : ''"
+        v-html="renderedCode"
+      ></code></pre>
     </div>
   </div>
 </template>
@@ -152,6 +150,7 @@ const HIGHLIGHT_LANG_ALIAS_MAP: Record<string, string> = {
 }
 
 const rawCode = computed(() => props.content ?? props.code ?? '')
+const renderCode = computed(() => rawCode.value.replace(/\r?\n$/, ''))
 const rawLang = computed(() => (props.language ?? props.lang ?? 'text').trim())
 const normalizedLang = computed(() => rawLang.value.toLowerCase())
 const highlightLang = computed(() => {
@@ -182,7 +181,7 @@ const escapeHtml = (text: string) => {
 // 高亮计算
 const highlightedCode = computed(() => {
   const lang = highlightLang.value
-  const code = rawCode.value
+  const code = renderCode.value
 
   if (lang && hljs.getLanguage(lang)) {
     try {

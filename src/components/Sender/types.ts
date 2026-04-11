@@ -5,6 +5,15 @@ export type SenderProps = ExtractPropTypes<typeof senderProps>
 
 export type SenderEmits = SenderEmitsType
 
-export type SenderInstance = object
+export interface SenderEditorLike {
+  getText: () => string
+}
+
+export interface SenderInstance {
+  focus: () => void
+  blur: () => void
+  clear: () => void
+  editor: () => SenderEditorLike
+}
 
 export type SenderSlots = SenderSlotsType

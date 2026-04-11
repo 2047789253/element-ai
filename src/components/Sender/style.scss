@@ -1,8 +1,10 @@
 @use '@/styles/mixins' as *;
 
-// ==================== Sender 输入框 ====================
 @include b('sender') {
+  width: 100%;
   display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
   gap: 8px;
   padding: 12px;
   border: 1px solid var(--#{$namespace}-sender-border, #d9d9d9);
@@ -10,23 +12,48 @@
   background-color: var(--#{$namespace}-sender-bg, #ffffff);
   box-sizing: border-box;
 
-  // ==================== 主题修饰符 ====================
   @include m('dark') {
     background-color: var(--#{$namespace}-sender-bg);
     border-color: var(--#{$namespace}-sender-border);
   }
 
-  // ==================== 内容容器 ====================
+  @include m('updown') {
+    flex-direction: column;
+    align-items: stretch;
+
+    .#{$namespace}-sender__content {
+      width: 100%;
+    }
+
+    .#{$namespace}-sender__action {
+      width: 100%;
+      align-items: center;
+    }
+
+    .#{$namespace}-sender__action--other {
+      width: 0;
+      flex: 1;
+    }
+
+    .#{$namespace}-sender__send-btn {
+      margin-left: auto;
+    }
+  }
+
   @include e('content') {
     flex: 1;
     min-width: 0;
+    width: 0;
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    box-sizing: border-box;
   }
 
-  // ==================== 输入框 ====================
   @include e('input') {
     width: 100%;
     min-height: 36px;
-    max-height: 200px;
+    max-height: inherit;
     padding: 8px;
     border: none;
     border-radius: 4px;
@@ -49,19 +76,60 @@
     }
   }
 
-  // ==================== 操作区域 ====================
+  @include e('input-tag-prefix') {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    height: 32px;
+    padding: 0 8px;
+    border-radius: 6px;
+    background: var(--#{$namespace}-color-primary-light-9, #ecf5ff);
+    color: var(--#{$namespace}-color-primary, #409eff);
+    box-sizing: border-box;
+    flex-shrink: 0;
+
+    &--updown {
+      margin-right: 4px;
+    }
+  }
+
+  @include e('input-tag-prefix-text') {
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  @include e('input-tag-prefix-remove') {
+    border: none;
+    background: transparent;
+    color: inherit;
+    width: 18px;
+    height: 18px;
+    line-height: 1;
+    border-radius: 50%;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+
+    @include hover {
+      background: rgba(64, 158, 255, 0.12);
+    }
+  }
+
   @include e('action') {
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     gap: 8px;
 
     @include m('other') {
+      flex: 1;
       display: flex;
+      align-items: center;
       gap: 4px;
     }
   }
 
-  // ==================== 发送按钮 ====================
   @include e('send-btn') {
     width: 32px;
     height: 32px;
@@ -81,13 +149,12 @@
       opacity: 0.8;
     }
 
-    @include when('disabled') {
+    &.disabled {
       background-color: rgba(0, 87, 255, 0.3);
       cursor: not-allowed;
     }
   }
 
-  // ==================== 加载状态 ====================
   @include e('loading') {
     width: 32px;
     height: 32px;
@@ -101,5 +168,18 @@
     justify-content: center;
     flex-shrink: 0;
     font-size: 14px;
+
+    > span {
+      animation: sender-loading-rotate 1.5s linear infinite;
+    }
+  }
+}
+
+@keyframes sender-loading-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
   }
 }

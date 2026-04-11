@@ -10,6 +10,7 @@ import type { MessageItem } from './components/BubbleList/props'
 import Conversations from './components/Conversations/index.vue'
 import BubbleList from './components/BubbleList/index.vue'
 import Sender from './components/Sender/index.vue'
+import type { SenderInstance } from './components/Sender/types'
 import Markdown from './components/Markdown/index.vue'
 import Bubble from './components/Bubble/index.vue'
 import CodeHighlight from './components/CodeHighlight/index.vue'
@@ -33,6 +34,32 @@ const bubbleAvatarUrl = ref('https://avatars.githubusercontent.com/u/9919?s=64&v
 const bubbleHeaderText = ref('Copilot 助手')
 const bubbleFooterText = ref('通过 props 注入样式变量')
 const codeExpanded = ref(true)
+const bubbleBottomThreshold = ref(30)
+const bubbleUseCustomBottomAction = ref(true)
+const bubbleLastAction = ref('初始状态')
+const bubbleMessageSeed = ref(100)
+const senderDemoRef = ref<SenderInstance | null>(null)
+const senderDemoValue = ref('')
+const senderDemoVariant = ref<'default' | 'updown'>('default')
+const senderDemoTagVariant = ref<'default' | 'updown'>('default')
+const senderDemoDisabled = ref(false)
+const senderDemoLoading = ref(false)
+const senderDemoEnterBreak = ref(false)
+const senderDemoBlockEnter = ref(false)
+const senderDemoShowTag = ref(true)
+const senderDemoTagValue = ref('DeepSeek-R1')
+const senderDemoUsePrefix = ref(true)
+const senderDemoUseCustomTagSlot = ref(true)
+const senderDemoUseCustomSendSlot = ref(false)
+const senderDemoMaxHeight = ref(140)
+const senderDemoSendCount = ref(0)
+const senderDemoEnterCount = ref(0)
+const senderDemoFocusCount = ref(0)
+const senderDemoBlurCount = ref(0)
+const senderDemoPasteCount = ref(0)
+const senderDemoPasteFiles = ref('无')
+const senderDemoLastEditorText = ref('')
+const senderDemoLogs = ref<string[]>(['Sender 实验区已初始化'])
 
 const codeBasicContent = [
   'interface MessageItem {',
@@ -127,6 +154,18 @@ const markdownCustomSlotContent = [
   '你可以在这里继续写业务文档，让代码块沿用统一的团队样式。',
 ].join('\n')
 
+const demoUserPrompts = [
+  '帮我总结一下这段内容。',
+  '请给出一个更简洁的回答版本。',
+  '把重点整理成 3 条 bullet。',
+]
+
+const demoAssistantReplies = [
+  '这是模拟助手消息：当你滚动到顶部时会触发 load-more，并插入历史记录。',
+  '这是模拟流式回复：先 typing=true，再自动变成 typing=false。',
+  '这是滚动 API 演示：你可以点击按钮滚动到顶部、底部或第二条消息。',
+]
+
 // BubbleList 示例消息数据
 const messages: Ref<MessageItem[]> = ref([
   {
@@ -158,18 +197,19 @@ const messages: Ref<MessageItem[]> = ref([
   },
 ])
 
-const handleSend = () => {
-  if (!inputText.value) return
+const handleSend = (content?: string) => {
+  const nextContent = content ?? inputText.value
+  if (!nextContent) return
 
   // 添加用户消息
   messages.value.push({
     id: messages.value.length + 1,
-    content: inputText.value,
+    content: nextContent,
     role: 'user',
     typing: false,
   })
 
-  const userMessage = inputText.value
+  const userMessage = nextContent
   inputText.value = ''
 
   // 滚动到底部
@@ -202,6 +242,161 @@ const handleSend = () => {
       }, 1500)
     }
   }, 800)
+}
+
+const pushDemoUserMessage = () => {
+  const content =
+    demoUserPrompts[bubbleMessageSeed.value % demoUserPrompts.length] ?? '请继续演示。'
+  messages.value.push({
+    id: bubbleMessageSeed.value++,
+    content,
+    role: 'user',
+    typing: false,
+  })
+  bubbleLastAction.value = '追加一条用户消息'
+  setTimeout(() => {
+    bubbleListRef.value?.scrollToBottom('smooth')
+  }, 0)
+}
+
+const pushDemoAssistantTypingMessage = () => {
+  const id = bubbleMessageSeed.value++
+  const content = demoAssistantReplies[id % demoAssistantReplies.length] ?? '这是默认助手演示消息。'
+  messages.value.push({
+    id,
+    content,
+    role: 'assistant',
+    typing: true,
+  })
+  bubbleLastAction.value = '追加一条助手流式消息'
+  setTimeout(() => {
+    bubbleListRef.value?.scrollToBottom('smooth')
+  }, 0)
+
+  setTimeout(() => {
+    const target = messages.value.find((item) => item.id === id)
+    if (target) {
+      target.typing = false
+    }
+  }, 1200)
+}
+
+const appendConversationRound = () => {
+  const userContent =
+    demoUserPrompts[bubbleMessageSeed.value % demoUserPrompts.length] ?? '请继续总结这段内容。'
+  const assistantContent =
+    demoAssistantReplies[bubbleMessageSeed.value % demoAssistantReplies.length] ??
+    '这是新增的一轮示例对话。'
+
+  messages.value.push({
+    id: bubbleMessageSeed.value++,
+    content: userContent,
+    role: 'user',
+    typing: false,
+  })
+
+  messages.value.push({
+    id: bubbleMessageSeed.value++,
+    content: assistantContent,
+    role: 'assistant',
+    typing: false,
+  })
+
+  bubbleLastAction.value = '新增一轮完整对话'
+  setTimeout(() => {
+    bubbleListRef.value?.scrollToBottom('smooth')
+  }, 0)
+}
+
+const scrollBubbleListToTop = () => {
+  bubbleListRef.value?.scrollToTop('smooth')
+  bubbleLastAction.value = '手动调用 scrollToTop()'
+}
+
+const scrollBubbleListToBottom = () => {
+  bubbleListRef.value?.scrollToBottom('smooth')
+  bubbleLastAction.value = '手动调用 scrollToBottom()'
+}
+
+const scrollBubbleListToSecond = () => {
+  bubbleListRef.value?.scrollToIndex(1, 'smooth')
+  bubbleLastAction.value = '手动调用 scrollToIndex(1)'
+}
+
+const pushSenderDemoLog = (message: string) => {
+  const time = new Date().toLocaleTimeString('zh-CN', { hour12: false })
+  senderDemoLogs.value.unshift(`[${time}] ${message}`)
+  senderDemoLogs.value = senderDemoLogs.value.slice(0, 8)
+}
+
+const handleSenderDemoSend = (content: string) => {
+  senderDemoSendCount.value += 1
+  pushSenderDemoLog(`触发 send，第 ${senderDemoSendCount.value} 次，内容长度 ${content.length}`)
+
+  senderDemoLoading.value = true
+  setTimeout(() => {
+    senderDemoLoading.value = false
+    pushSenderDemoLog('模拟响应完成，loading 关闭')
+  }, 700)
+}
+
+const handleSenderDemoSendBySlot = () => {
+  const content = senderDemoValue.value
+  if (!content.trim() || senderDemoDisabled.value || senderDemoLoading.value) return
+
+  handleSenderDemoSend(content)
+  senderDemoValue.value = ''
+}
+
+const handleSenderDemoEnterPressed = () => {
+  senderDemoEnterCount.value += 1
+  pushSenderDemoLog(`触发 enterPressed，第 ${senderDemoEnterCount.value} 次`)
+}
+
+const handleSenderDemoKeydown = (event: KeyboardEvent) => {
+  if (senderDemoBlockEnter.value && event.key === 'Enter' && !event.shiftKey) {
+    event.preventDefault()
+    pushSenderDemoLog('onHandleKeyDown 拦截了 Enter 发送')
+  }
+}
+
+const handleSenderDemoPaste = () => {
+  senderDemoPasteCount.value += 1
+  pushSenderDemoLog(`触发 paste，第 ${senderDemoPasteCount.value} 次`)
+}
+
+const handleSenderDemoPasteFile = (files: File[]) => {
+  senderDemoPasteFiles.value = files.map((file) => file.name).join(', ')
+  pushSenderDemoLog(`触发 pasteFile，文件：${senderDemoPasteFiles.value}`)
+}
+
+const handleSenderDemoFocus = () => {
+  senderDemoFocusCount.value += 1
+}
+
+const handleSenderDemoBlur = () => {
+  senderDemoBlurCount.value += 1
+}
+
+const handleSenderDemoLoadingUpdate = (value: boolean) => {
+  senderDemoLoading.value = value
+  pushSenderDemoLog(`触发 update:loading -> ${value}`)
+}
+
+const readSenderDemoEditorText = () => {
+  senderDemoLastEditorText.value = senderDemoRef.value?.editor().getText() ?? ''
+  pushSenderDemoLog(`调用 editor().getText()，长度 ${senderDemoLastEditorText.value.length}`)
+}
+
+const clearSenderDemoByExpose = () => {
+  senderDemoRef.value?.clear()
+  pushSenderDemoLog('调用 clear() 清空输入')
+}
+
+const insertSenderDemoPrompt = () => {
+  const line = '请把这段内容整理成 3 条结论。'
+  senderDemoValue.value = senderDemoValue.value ? `${senderDemoValue.value}\n${line}` : line
+  pushSenderDemoLog('通过 action-list 插槽插入了模板内容')
 }
 
 // const mockMenuOptions = [
@@ -615,12 +810,17 @@ const handleSend = () => {
         <!-- AI 场景组件区 -->
         <section class="demo-section ai-section">
           <h2>AI 聊天场景组件</h2>
-          <p class="subtitle">这些组件基于库内 AI 业务场景定制，用于快速构建大模型对话交互界面。</p>
+          <p class="subtitle">
+            交互实验区：可调滚动阈值、滚动 API、底部自定义操作槽与新增对话用法，方便下游开发者
+            直接复用 BubbleList。
+          </p>
           <div class="feature-list">
             <span class="feature-item">✨ BubbleList：聊天消息列表</span>
             <span class="feature-item">📝 Markdown 支持</span>
             <span class="feature-item">⌨️ 打字机效果</span>
             <span class="feature-item">🎯 智能滚动</span>
+            <span class="feature-item">🔧 阈值可配置</span>
+            <span class="feature-item">➕ 快速追加对话</span>
           </div>
 
           <div class="chat-container">
@@ -629,16 +829,323 @@ const handleSend = () => {
             </div>
 
             <div class="chat-main">
-              <BubbleList ref="bubbleListRef" :data="messages" class="message-list" />
+              <div class="bubblelist-lab">
+                <div class="bubblelist-lab-row">
+                  <label class="bubblelist-slider">
+                    <span>bottomThreshold: {{ bubbleBottomThreshold }}px</span>
+                    <input
+                      v-model.number="bubbleBottomThreshold"
+                      type="range"
+                      min="0"
+                      max="120"
+                      step="5"
+                    />
+                  </label>
+                </div>
+
+                <div class="bubblelist-lab-row">
+                  <button class="control-btn" type="button" @click="pushDemoUserMessage">
+                    追加用户消息
+                  </button>
+                  <button class="control-btn" type="button" @click="pushDemoAssistantTypingMessage">
+                    追加助手流式消息
+                  </button>
+                  <button class="control-btn" type="button" @click="appendConversationRound">
+                    新增一轮对话
+                  </button>
+                  <button class="control-btn" type="button" @click="scrollBubbleListToTop">
+                    滚动到顶部
+                  </button>
+                  <button class="control-btn" type="button" @click="scrollBubbleListToBottom">
+                    滚动到底部
+                  </button>
+                  <button class="control-btn" type="button" @click="scrollBubbleListToSecond">
+                    滚动到第二条
+                  </button>
+                  <button
+                    class="control-btn"
+                    :class="{ 'is-active': bubbleUseCustomBottomAction }"
+                    type="button"
+                    @click="bubbleUseCustomBottomAction = !bubbleUseCustomBottomAction"
+                  >
+                    {{ bubbleUseCustomBottomAction ? '关闭' : '开启' }}自定义底部操作
+                  </button>
+                </div>
+
+                <div class="bubblelist-lab-meta">
+                  <span>消息数：{{ messages.length }}</span>
+                  <span>最近操作：{{ bubbleLastAction }}</span>
+                  <span>下游用法：直接向 data 追加消息即可</span>
+                </div>
+
+                <div class="bubblelist-usage">
+                  <code
+                    >messages.value.push({ id: Date.now(), role: 'user', content: '新对话内容'
+                    })</code
+                  >
+                </div>
+              </div>
+
+              <BubbleList
+                ref="bubbleListRef"
+                :data="messages"
+                class="message-list"
+                :bottom-threshold="bubbleBottomThreshold"
+              >
+                <template
+                  v-if="bubbleUseCustomBottomAction"
+                  #bottom-action="{ scrollToBottom, scrollToTop }"
+                >
+                  <div class="bubblelist-bottom-action">
+                    <button class="mini-action-btn" type="button" @click="scrollToTop('smooth')">
+                      顶
+                    </button>
+                    <button class="mini-action-btn" type="button" @click="scrollToBottom('smooth')">
+                      底
+                    </button>
+                  </div>
+                </template>
+              </BubbleList>
 
               <div class="chat-sender">
                 <Sender
                   v-model="inputText"
                   placeholder="请输入你想问的问题..."
-                  @submit="handleSend"
+                  @send="handleSend"
                 />
               </div>
             </div>
+          </div>
+        </section>
+
+        <section class="demo-section sender-showcase">
+          <h2>Sender 功能实验区</h2>
+          <p class="subtitle">
+            展示点：v-model、send、enterPressed、enterBreak、onHandleKeyDown、paste/pasteFile、
+            prefix/input-tag-prefix/action-list/send-btn-loading/send-btn 插槽、以及
+            focus/blur/clear/editor 暴露方法。
+          </p>
+
+          <div class="sender-lab-panel">
+            <div class="sender-lab-controls">
+              <span class="control-label">variant</span>
+              <button
+                class="control-btn"
+                :class="{ 'is-active': senderDemoVariant === 'default' }"
+                type="button"
+                @click="senderDemoVariant = 'default'"
+              >
+                default
+              </button>
+              <button
+                class="control-btn"
+                :class="{ 'is-active': senderDemoVariant === 'updown' }"
+                type="button"
+                @click="senderDemoVariant = 'updown'"
+              >
+                updown
+              </button>
+
+              <span class="control-label">inputTagVariant</span>
+              <button
+                class="control-btn"
+                :class="{ 'is-active': senderDemoTagVariant === 'default' }"
+                type="button"
+                @click="senderDemoTagVariant = 'default'"
+              >
+                default
+              </button>
+              <button
+                class="control-btn"
+                :class="{ 'is-active': senderDemoTagVariant === 'updown' }"
+                type="button"
+                @click="senderDemoTagVariant = 'updown'"
+              >
+                updown
+              </button>
+
+              <button
+                class="control-btn"
+                :class="{ 'is-active': senderDemoEnterBreak }"
+                type="button"
+                @click="senderDemoEnterBreak = !senderDemoEnterBreak"
+              >
+                {{ senderDemoEnterBreak ? '回车换行' : '回车发送' }}
+              </button>
+
+              <button
+                class="control-btn"
+                :class="{ 'is-active': senderDemoBlockEnter }"
+                type="button"
+                @click="senderDemoBlockEnter = !senderDemoBlockEnter"
+              >
+                {{ senderDemoBlockEnter ? '已拦截 Enter' : '允许 Enter 发送' }}
+              </button>
+
+              <button
+                class="control-btn"
+                :class="{ 'is-active': senderDemoDisabled }"
+                type="button"
+                @click="senderDemoDisabled = !senderDemoDisabled"
+              >
+                {{ senderDemoDisabled ? 'disabled=true' : 'disabled=false' }}
+              </button>
+
+              <button
+                class="control-btn"
+                :class="{ 'is-active': senderDemoShowTag }"
+                type="button"
+                @click="senderDemoShowTag = !senderDemoShowTag"
+              >
+                {{ senderDemoShowTag ? '隐藏标签' : '显示标签' }}
+              </button>
+
+              <button
+                class="control-btn"
+                :class="{ 'is-active': senderDemoUsePrefix }"
+                type="button"
+                @click="senderDemoUsePrefix = !senderDemoUsePrefix"
+              >
+                {{ senderDemoUsePrefix ? '隐藏 prefix' : '显示 prefix' }}
+              </button>
+
+              <button
+                class="control-btn"
+                :class="{ 'is-active': senderDemoUseCustomTagSlot }"
+                type="button"
+                @click="senderDemoUseCustomTagSlot = !senderDemoUseCustomTagSlot"
+              >
+                {{ senderDemoUseCustomTagSlot ? '标签槽：自定义' : '标签槽：默认' }}
+              </button>
+
+              <button
+                class="control-btn"
+                :class="{ 'is-active': senderDemoUseCustomSendSlot }"
+                type="button"
+                @click="senderDemoUseCustomSendSlot = !senderDemoUseCustomSendSlot"
+              >
+                {{ senderDemoUseCustomSendSlot ? '发送槽：自定义' : '发送槽：默认' }}
+              </button>
+            </div>
+
+            <div class="sender-lab-controls">
+              <label class="sender-lab-input-inline">
+                <span>tag 文案</span>
+                <input
+                  v-model="senderDemoTagValue"
+                  type="text"
+                  placeholder="输入 inputTagPrefixValue"
+                />
+              </label>
+
+              <label class="sender-lab-input-inline">
+                <span>maxHeight: {{ senderDemoMaxHeight }}px</span>
+                <input
+                  v-model.number="senderDemoMaxHeight"
+                  type="range"
+                  min="80"
+                  max="260"
+                  step="10"
+                />
+              </label>
+            </div>
+
+            <Sender
+              ref="senderDemoRef"
+              v-model="senderDemoValue"
+              :theme="uiTheme"
+              :variant="senderDemoVariant"
+              :disabled="senderDemoDisabled"
+              :loading="senderDemoLoading"
+              :enter-break="senderDemoEnterBreak"
+              :on-handle-key-down="handleSenderDemoKeydown"
+              :show-input-tag-prefix="senderDemoShowTag"
+              :input-tag-prefix-value="senderDemoTagValue"
+              :input-tag-variant="senderDemoTagVariant"
+              :max-height="senderDemoMaxHeight"
+              placeholder="试试回车、Shift+回车、粘贴文件、插槽与 expose API"
+              @send="handleSenderDemoSend"
+              @enter-pressed="handleSenderDemoEnterPressed"
+              @paste="handleSenderDemoPaste"
+              @paste-file="handleSenderDemoPasteFile"
+              @focus="handleSenderDemoFocus"
+              @blur="handleSenderDemoBlur"
+              @update:show-input-tag-prefix="(value) => (senderDemoShowTag = value)"
+              @update:loading="handleSenderDemoLoadingUpdate"
+            >
+              <template v-if="senderDemoUsePrefix" #prefix>
+                <span class="sender-prefix-chip">Assistant</span>
+              </template>
+
+              <template v-if="senderDemoUseCustomTagSlot" #input-tag-prefix>
+                <div class="sender-tag-chip">
+                  <span>{{ senderDemoTagValue || 'Model' }}</span>
+                  <button type="button" @click="senderDemoShowTag = false">x</button>
+                </div>
+              </template>
+
+              <template #action-list>
+                <button class="sender-action-btn" type="button" @click="insertSenderDemoPrompt">
+                  插入模板
+                </button>
+                <button
+                  class="sender-action-btn"
+                  type="button"
+                  @click="senderDemoLoading = !senderDemoLoading"
+                >
+                  {{ senderDemoLoading ? '停止 loading' : '模拟 loading' }}
+                </button>
+              </template>
+
+              <template v-if="senderDemoUseCustomSendSlot" #send-btn="{ disabled }">
+                <button
+                  class="sender-send-custom"
+                  type="button"
+                  :disabled="disabled"
+                  @click="handleSenderDemoSendBySlot"
+                >
+                  Send
+                </button>
+              </template>
+
+              <template #send-btn-loading>
+                <button
+                  class="sender-loading-slot"
+                  type="button"
+                  @click="senderDemoLoading = false"
+                >
+                  生成中，点击停止
+                </button>
+              </template>
+            </Sender>
+
+            <div class="sender-lab-controls">
+              <button class="control-btn" type="button" @click="senderDemoRef?.focus()">
+                focus()
+              </button>
+              <button class="control-btn" type="button" @click="senderDemoRef?.blur()">
+                blur()
+              </button>
+              <button class="control-btn" type="button" @click="clearSenderDemoByExpose">
+                clear()
+              </button>
+              <button class="control-btn" type="button" @click="readSenderDemoEditorText">
+                editor().getText()
+              </button>
+            </div>
+
+            <div class="sender-lab-meta">
+              <span>send 次数：{{ senderDemoSendCount }}</span>
+              <span>enterPressed 次数：{{ senderDemoEnterCount }}</span>
+              <span>focus/blur：{{ senderDemoFocusCount }}/{{ senderDemoBlurCount }}</span>
+              <span>paste 次数：{{ senderDemoPasteCount }}</span>
+              <span>paste 文件：{{ senderDemoPasteFiles }}</span>
+              <span>editor 内容长度：{{ senderDemoLastEditorText.length }}</span>
+            </div>
+
+            <ul class="sender-lab-log">
+              <li v-for="item in senderDemoLogs" :key="item">{{ item }}</li>
+            </ul>
           </div>
         </section>
       </main>
@@ -808,7 +1315,7 @@ header h1 {
 
 .custom-code-block pre {
   margin: 0;
-  padding: 12px;
+  padding: 0.75em 12px;
   overflow-x: auto;
   scrollbar-width: thin;
   scrollbar-color: var(--el-ai-scrollbar-thumb-bg-color) transparent;
@@ -1062,18 +1569,260 @@ header h1 {
   display: flex;
   flex-direction: column;
   position: relative;
+  min-height: 0;
+}
+
+.bubblelist-lab {
+  border-bottom: 1px solid var(--el-ai-border-color);
+  background: var(--el-ai-fill-color);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bubblelist-lab-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.bubblelist-slider {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 12px;
+  color: var(--el-ai-text-color-secondary);
+}
+
+.bubblelist-slider input {
+  width: 180px;
+}
+
+.bubblelist-lab-meta {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--el-ai-text-color-secondary);
+}
+
+.bubblelist-usage {
+  border: 1px dashed var(--el-ai-border-color);
+  border-radius: 8px;
+  background: var(--el-ai-bg-color);
+  padding: 8px 10px;
+  font-size: 12px;
+  color: var(--el-ai-text-color-secondary);
+  overflow-x: auto;
+}
+
+.bubblelist-usage code {
+  white-space: nowrap;
 }
 
 .message-list {
   flex: 1;
-  padding: 20px;
-  overflow-y: auto;
+  min-height: 0;
+  --el-ai-bubble-list-scrollbar-track: rgba(17, 25, 37, 0.14);
+  --el-ai-bubble-list-scrollbar-thumb: rgba(17, 25, 37, 0.48);
+  --el-ai-bubble-list-scrollbar-thumb-hover: rgba(17, 25, 37, 0.66);
+}
+
+.app-shell[data-el-ai-theme='dark'] .message-list {
+  --el-ai-bubble-list-scrollbar-track: rgba(148, 163, 184, 0.28);
+  --el-ai-bubble-list-scrollbar-thumb: rgba(191, 219, 254, 0.72);
+  --el-ai-bubble-list-scrollbar-thumb-hover: rgba(191, 219, 254, 0.92);
+}
+
+.message-list.el-ai-bubble-list {
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
+  scrollbar-width: auto;
+}
+
+.message-list.el-ai-bubble-list::-webkit-scrollbar {
+  width: 14px;
+}
+
+.message-list.el-ai-bubble-list::-webkit-scrollbar-track {
+  border-radius: 10px;
+}
+
+.message-list.el-ai-bubble-list::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+}
+
+.bubblelist-bottom-action {
+  display: flex;
+  gap: 8px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--el-ai-bg-color);
+  border: 1px solid var(--el-ai-border-color);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.mini-action-btn {
+  border: 1px solid var(--el-ai-border-color);
+  background: var(--el-ai-fill-color);
+  color: var(--el-ai-text-color-regular);
+  border-radius: 999px;
+  width: 28px;
+  height: 28px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.mini-action-btn:hover {
+  border-color: #409eff;
+  color: #409eff;
 }
 
 .chat-sender {
-  padding: 15px;
+  padding: 10px 12px;
   border-top: 1px solid var(--el-ai-border-color);
   background: var(--el-ai-bg-color);
+}
+
+.sender-lab-panel {
+  border: 1px solid var(--el-ai-border-color-light);
+  border-radius: 10px;
+  padding: 14px;
+  background: var(--el-ai-fill-color);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sender-lab-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.sender-lab-input-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--el-ai-text-color-secondary);
+}
+
+.sender-lab-input-inline input[type='text'] {
+  border: 1px solid var(--el-ai-border-color);
+  border-radius: 6px;
+  background: var(--el-ai-bg-color);
+  color: var(--el-ai-text-color);
+  padding: 6px 8px;
+  font-size: 12px;
+  min-width: 190px;
+}
+
+.sender-lab-input-inline input[type='range'] {
+  width: 180px;
+}
+
+.sender-prefix-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: #eef6ff;
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.sender-tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 8px;
+  background: #ecf5ff;
+  color: #2563eb;
+  font-size: 12px;
+}
+
+.sender-tag-chip button {
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1;
+  padding: 0;
+}
+
+.sender-action-btn {
+  border: 1px solid var(--el-ai-border-color);
+  background: var(--el-ai-bg-color);
+  color: var(--el-ai-text-color-regular);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.sender-action-btn:hover {
+  border-color: #409eff;
+  color: #409eff;
+}
+
+.sender-send-custom {
+  min-width: 56px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  background: #2563eb;
+  color: #fff;
+  padding: 0 12px;
+  cursor: pointer;
+}
+
+.sender-send-custom:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+.sender-loading-slot {
+  border: 1px solid #f59e0b;
+  background: #fffbeb;
+  color: #92400e;
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.sender-lab-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  font-size: 12px;
+  color: var(--el-ai-text-color-secondary);
+}
+
+.sender-lab-log {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px dashed var(--el-ai-border-color);
+  border-radius: 8px;
+  background: var(--el-ai-bg-color);
+  list-style: none;
+  max-height: 160px;
+  overflow: auto;
+  font-size: 12px;
+  color: var(--el-ai-text-color-secondary);
+}
+
+.sender-lab-log li + li {
+  margin-top: 6px;
 }
 
 @media (max-width: 992px) {
@@ -1087,6 +1836,34 @@ header h1 {
 
   .bubble-input-grid {
     grid-template-columns: 1fr;
+  }
+
+  .bubblelist-slider {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .bubblelist-slider input {
+    width: 50%;
+  }
+
+  .bubblelist-usage code {
+    white-space: normal;
+    word-break: break-all;
+  }
+
+  .sender-lab-input-inline {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .sender-lab-input-inline input[type='text'] {
+    min-width: 0;
+    width: 58%;
+  }
+
+  .sender-lab-input-inline input[type='range'] {
+    width: 50%;
   }
 }
 </style>

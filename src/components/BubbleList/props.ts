@@ -27,6 +27,16 @@ export const bubbleListProps = {
     type: Boolean,
     default: false,
   },
+  /** 判定为“已滚动到底部”的距离阈值（px） */
+  bottomThreshold: {
+    type: Number,
+    default: 30,
+  },
+  /** 触发“触顶加载”事件的顶部距离阈值（px） */
+  topLoadThreshold: {
+    type: Number,
+    default: 10,
+  },
 }
 
 export type BubbleListPropsType = Partial<ExtractPropTypes<typeof bubbleListProps>>

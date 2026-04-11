@@ -120,7 +120,7 @@
   @include e('body') {
     pre {
       margin: 0;
-      padding: 10px 14px;
+      padding: 0.75em 14px;
       // 强制透明，让背景由外层容器 var(--ela-code-bg) 接管
       background-color: transparent !important;
       max-height: var(--#{$namespace}-code-max-height);
