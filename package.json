@@ -55,6 +55,7 @@
     "@popperjs/core": "^2.11.8",
     "@tsconfig/node24": "^24.0.3",
     "@types/dompurify": "^3.2.0",
+    "@types/hast": "^3.0.4",
     "@types/jest": "^30.0.0",
     "@types/lodash-es": "^4.17.12",
     "@types/node": "^24.10.4",
