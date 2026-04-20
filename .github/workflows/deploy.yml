@@ -1,12 +1,9 @@
-# 工作流的名字
 name: Deploy VitePress site to Pages
 
-# 触发条件：当你向 main 分支 push 代码时执行
 on:
   push:
     branches: [main]
 
-# 授予机器人发布页面的权限
 permissions:
   contents: read
   pages: write
@@ -16,30 +13,40 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout # 第一步：拉取代码
+      - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # 加上这个可以让 VitePress 获取更准确的最后更新时间
 
-      - name: Install Node.js # 第二步：安装 Node
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3 # 安装 pnpm
+        with:
+          version: 9 # 或者你本地用的版本
+
+      - name: Install Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          cache: 'pnpm' # 开启 pnpm 缓存，让以后部署飞快
 
-      - name: Install dependencies # 第三步：安装项目依赖
-        run: npm install
+      - name: Install dependencies
+        run: pnpm install
 
-      - name: Build # 第四步：构建静态文件
-        run: npm run docs:build
+      - name: Build with VitePress
+        run: pnpm run docs:build
 
-      - name: Upload # 第五步：把打包好的文件传给 GitHub Pages
+      - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: docs/.vitepress/dist # 这里的路径要和 VitePress 打包出来的目录一致
+          path: docs/.vitepress/dist
 
   deploy:
-    needs: build # 等 build 任务成功后才开始
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy # 最后一步：正式发布上线
+      - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
